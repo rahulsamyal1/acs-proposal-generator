@@ -2,8 +2,13 @@
 ACS Commercial Cleaning - proposal builder (web / server version).
 
 Renders the branded Word template with docxtpl and converts to PDF using
-LibreOffice (which the host installs via packages.txt). No Microsoft Word
+LibreOffice (installed by the host via packages.txt). No Microsoft Word
 needed, so this runs on a Linux web server.
+
+Supports modular proposals: the four core sections (Cover Letter, Scope of
+Work, Investment Options, Service Terms) plus any number of optional sections
+(Executive Summary, What We Understood, etc.) placed at three anchor points.
+Scope can be entered by area or by rotation frequency.
 """
 
 import os
@@ -19,6 +24,8 @@ from docxtpl import DocxTemplate
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 TEMPLATE_PATH = os.path.join(HERE, "template", "proposal_template.docx")
+
+PLACEMENTS = ("after_cover", "after_scope", "after_investment")
 
 
 # ---------------------------------------------------------------------------
@@ -47,6 +54,21 @@ def _initials(name):
     return "".join(w[0] for w in words).upper()[:4]
 
 
+def _process_section(raw):
+    """Shape one optional section, or None if empty."""
+    title = (raw.get("title") or "").strip()
+    paragraphs = _clean_list(raw.get("paragraphs"))
+    bullets = _clean_list(raw.get("bullets"))
+    if not (title or paragraphs or bullets):
+        return None
+    return {
+        "heading": title.upper(),        # green bar text
+        "toc_title": title or "Section",  # table of contents text
+        "paragraphs": paragraphs,
+        "bullets": bullets,
+    }
+
+
 def build_context(data):
     client_name = (data.get("client_name") or "").strip() or "[Client Name]"
     contact_name = (data.get("contact_name") or "").strip()
@@ -62,6 +84,7 @@ def build_context(data):
     if not reference:
         reference = "ACS-{}-{}-001".format(_initials(client_name), today.year)
 
+    # --- inclusions (paired into a 2-column grid) ---
     inclusions = _clean_list(data.get("inclusions"))
     inclusion_rows = []
     for i in range(0, len(inclusions), 2):
@@ -72,13 +95,17 @@ def build_context(data):
             "right_mark": "✓ " if right else "",
         })
 
+    # --- scope rows (same shape for 'area' and 'rotation' styles) ---
     areas = []
     for area in (data.get("areas") or []):
         name = (area.get("name") or "").strip()
         lines = _clean_list(area.get("items"))
         if name or lines:
             areas.append({"name": name, "lines": lines})
+    scope_style = (data.get("scope_style") or "area").strip().lower()
+    scope_col = "Frequency" if scope_style == "rotation" else "Area"
 
+    # --- services / inclusions / terms ---
     services = []
     for svc in (data.get("services") or []):
         if not any((svc.get(k) or "").strip()
@@ -101,6 +128,37 @@ def build_context(data):
         if label or value:
             terms.append({"label": label, "value": value})
 
+    # --- optional sections, grouped by placement ---
+    buckets = {p: [] for p in PLACEMENTS}
+    for raw in (data.get("extra_sections") or []):
+        sec = _process_section(raw)
+        if not sec:
+            continue
+        placement = (raw.get("placement") or "after_cover").strip().lower()
+        if placement not in buckets:
+            placement = "after_cover"
+        buckets[placement].append(sec)
+
+    # --- assign section numbers in document order + build the TOC ---
+    toc = []
+    counter = {"n": 0}
+
+    def number(title):
+        counter["n"] += 1
+        toc.append({"num": counter["n"], "title": title})
+        return counter["n"]
+
+    num_cover = number("Cover Letter")
+    for sec in buckets["after_cover"]:
+        sec["number"] = number(sec["toc_title"])
+    num_scope = number("Scope of Work")
+    for sec in buckets["after_scope"]:
+        sec["number"] = number(sec["toc_title"])
+    num_investment = number("Investment Options")
+    for sec in buckets["after_investment"]:
+        sec["number"] = number(sec["toc_title"])
+    num_terms = number("Service Terms")
+
     return {
         "client_name": client_name,
         "contact_name": contact_name or "[Contact Name]",
@@ -113,11 +171,20 @@ def build_context(data):
         "cover_paragraphs": _clean_list(data.get("cover_paragraphs")),
         "frequency": (data.get("frequency") or "").strip(),
         "duration": (data.get("duration") or "").strip(),
+        "scope_col": scope_col,
         "areas": areas,
         "service_notes": _clean_list(data.get("service_notes")),
         "services": services,
         "inclusion_rows": inclusion_rows,
         "terms": terms,
+        "toc": toc,
+        "num_cover": num_cover,
+        "num_scope": num_scope,
+        "num_investment": num_investment,
+        "num_terms": num_terms,
+        "extra_after_cover": buckets["after_cover"],
+        "extra_after_scope": buckets["after_scope"],
+        "extra_after_investment": buckets["after_investment"],
     }
 
 
@@ -140,7 +207,6 @@ def _find_soffice():
         path = shutil.which(name)
         if path:
             return path
-    # common Windows install location (for local testing)
     win = r"C:\Program Files\LibreOffice\program\soffice.exe"
     return win if os.path.exists(win) else None
 

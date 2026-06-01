@@ -3,6 +3,10 @@ ACS Commercial Cleaning - Proposal Generator (web app).
 
 A single-password Streamlit app. Fill the form, click Generate, download the
 branded Word doc and PDF. Deploy free on Streamlit Community Cloud.
+
+Modular: the four core sections plus optional sections (Executive Summary,
+What We Understood, etc.) placed at chosen anchor points; scope by area or by
+rotation frequency.
 """
 
 import json
@@ -18,6 +22,46 @@ LOGO = os.path.join(HERE, "assets", "acs_logo.png")
 PRESETS_PATH = os.path.join(HERE, "presets.json")
 
 st.set_page_config(page_title="ACS Proposal Generator", page_icon="🧽", layout="centered")
+
+PLACEMENT_LABELS = {
+    "After Cover Letter": "after_cover",
+    "After Scope of Work": "after_scope",
+    "After Investment Options": "after_investment",
+}
+
+# Quick-add templates for the common optional sections (titles + starter text).
+SECTION_PRESETS = {
+    "Executive Summary": {
+        "placement": "After Cover Letter",
+        "paragraphs": "Following our site walk, the facility needs a structured cleaning approach tailored to its environment. This proposal is built around two priorities: reset the site to a clean, controlled standard, then maintain it consistently.",
+        "bullets": "",
+    },
+    "What We Understood": {
+        "placement": "After Cover Letter",
+        "paragraphs": "From the walkthrough and current schedule, our understanding is that you want a reliable standard while reviewing overall cost.",
+        "bullets": "Clean toilets and amenities\nClean kitchens and lunchrooms\nReception and client-facing areas kept presentable\nA stable cleaning team familiar with the site",
+    },
+    "Our Cleaning Approach": {
+        "placement": "After Cover Letter",
+        "paragraphs": "Not every task needs to be done daily to keep a good standard. We separate daily cleaning priorities from rotating detail tasks.\nThe goal is not to reduce the standard - it is to focus daily cleaning time where it matters most.",
+        "bullets": "",
+    },
+    "Transition & Site Improvement Plan": {
+        "placement": "After Scope of Work",
+        "paragraphs": "When ACS takes over a site, the first few weeks establish the routine, the cleaners learn the site, and any shortfalls are identified.",
+        "bullets": "Confirm the final agreed scope\nComplete a site handover with the cleaning team\nPrioritise bathrooms, kitchens and high-touch areas\nStabilise the regular routine, then work through detail areas",
+    },
+    "How ACS Manages the Service": {
+        "placement": "After Scope of Work",
+        "paragraphs": "ACS focuses on stability, consistency and accountability. Wherever possible we use the same cleaners so they become familiar with the building and expectations.",
+        "bullets": "Consistent cleaners wherever possible\nClear scope and proper site induction\nSupervisor involvement where required\nDirect communication and follow-up on missed items",
+    },
+    "Relevant Experience & References": {
+        "placement": "After Investment Options",
+        "paragraphs": "ACS Commercial Cleaning has experience across commercial offices, industrial sites, food production and long-term recurring contracts.",
+        "bullets": "References available on request\nThe Salvation Army\nSt Pauls\nTurosi Food Solutions",
+    },
+}
 
 
 @st.cache_data
@@ -35,7 +79,7 @@ def password_ok():
     try:
         expected = st.secrets["app_password"]
     except Exception:  # noqa: BLE001
-        expected = "changeme"  # local fallback; set a real one in Cloud secrets
+        expected = "changeme"
     if os.path.exists(LOGO):
         st.image(LOGO, width=260)
     st.subheader("ACS Proposal Generator")
@@ -57,7 +101,7 @@ default_terms = PRESETS.get("default_terms", [])
 
 
 # ---------------------------------------------------------------------------
-# State helpers for dynamic areas / services
+# State helpers
 # ---------------------------------------------------------------------------
 def _ensure(key, default):
     if key not in st.session_state:
@@ -88,6 +132,15 @@ def add_service(svc=None):
     st.session_state.service_ids.append(i)
 
 
+def add_section(title="", placement="After Cover Letter", paragraphs="", bullets=""):
+    i = new_id()
+    st.session_state[f"sec_title_{i}"] = title
+    st.session_state[f"sec_place_{i}"] = placement
+    st.session_state[f"sec_paras_{i}"] = paragraphs
+    st.session_state[f"sec_bullets_{i}"] = bullets
+    st.session_state.section_ids.append(i)
+
+
 def apply_preset(p):
     st.session_state["frequency"] = p.get("frequency", "")
     st.session_state["duration"] = p.get("duration", "")
@@ -101,10 +154,10 @@ def apply_preset(p):
         add_service(s)
 
 
-# initialise state on first load
 if "area_ids" not in st.session_state:
     st.session_state.area_ids = []
     st.session_state.service_ids = []
+    st.session_state.section_ids = []
     add_area()
     add_service()
 
@@ -121,13 +174,10 @@ with st.container(border=True):
     names = ["— Blank —"] + [p["name"] for p in presets]
     choice = st.selectbox("Start from a job type (optional)", names, index=0)
     if st.button("Apply preset", disabled=(choice == "— Blank —")):
-        idx = names.index(choice) - 1
-        apply_preset(presets[idx])
+        apply_preset(presets[names.index(choice) - 1])
         st.rerun()
 
-# ---------------------------------------------------------------------------
-# 1. Client details
-# ---------------------------------------------------------------------------
+# 1. Client details ----------------------------------------------------------
 st.header("1 · Client details")
 c1, c2 = st.columns(2)
 with c1:
@@ -149,17 +199,21 @@ with c2:
     _ensure("reference", "")
     st.text_input("Reference (blank = auto)", key="reference")
 
-# ---------------------------------------------------------------------------
-# 2. Cover letter
-# ---------------------------------------------------------------------------
+# 2. Cover letter ------------------------------------------------------------
 st.header("2 · Cover letter")
 _ensure("cover_paragraphs", "")
 st.text_area("Letter paragraphs (one paragraph per line)", key="cover_paragraphs", height=170)
 
-# ---------------------------------------------------------------------------
-# 3. Scope of work
-# ---------------------------------------------------------------------------
+# 3. Scope of work -----------------------------------------------------------
 st.header("3 · Scope of work")
+_ensure("scope_style_label", "By area")
+scope_label = st.radio(
+    "How is the scope organised?",
+    ["By area", "By rotation frequency"],
+    horizontal=True, key="scope_style_label",
+)
+is_rotation = scope_label == "By rotation frequency"
+
 c3, c4 = st.columns(2)
 with c3:
     _ensure("frequency", "")
@@ -168,12 +222,20 @@ with c4:
     _ensure("duration", "")
     st.text_input("Duration", key="duration", placeholder="As required to complete scope")
 
-st.markdown("**Areas**")
+st.markdown("**Rotation categories**" if is_rotation else "**Areas**")
+if is_rotation:
+    if st.button("Use Daily / Weekly / Fortnightly / Monthly rows"):
+        st.session_state.area_ids = []
+        for nm in ["Daily Priorities", "Weekly", "Fortnightly", "Monthly / As required"]:
+            add_area(nm)
+        st.rerun()
+
+name_label = "Category name" if is_rotation else "Area name"
 for i in list(st.session_state.area_ids):
     with st.container(border=True):
         cc1, cc2 = st.columns([3, 1])
         with cc1:
-            st.text_input("Area name", key=f"area_name_{i}")
+            st.text_input(name_label, key=f"area_name_{i}")
         with cc2:
             st.write("")
             st.write("")
@@ -181,16 +243,14 @@ for i in list(st.session_state.area_ids):
                 st.session_state.area_ids.remove(i)
                 st.rerun()
         st.text_area("Scope items (one per line)", key=f"area_items_{i}", height=110)
-if st.button("➕ Add area"):
+if st.button("➕ Add row"):
     add_area()
     st.rerun()
 
 _ensure("service_notes", "")
 st.text_area("Service notes (one per line)", key="service_notes", height=110)
 
-# ---------------------------------------------------------------------------
-# 4. Investment options
-# ---------------------------------------------------------------------------
+# 4. Investment options ------------------------------------------------------
 st.header("4 · Investment options")
 for i in list(st.session_state.service_ids):
     with st.container(border=True):
@@ -218,9 +278,7 @@ if st.button("➕ Add service line"):
 _ensure("inclusions", "")
 st.text_area("What the investment includes (one per line)", key="inclusions", height=150)
 
-# ---------------------------------------------------------------------------
-# 5. Service terms
-# ---------------------------------------------------------------------------
+# 5. Service terms -----------------------------------------------------------
 st.header("5 · Service terms")
 if "terms_df" not in st.session_state:
     st.session_state.terms_df = pd.DataFrame(
@@ -235,9 +293,40 @@ terms_edited = st.data_editor(
     key="terms_editor",
 )
 
-# ---------------------------------------------------------------------------
-# Generate
-# ---------------------------------------------------------------------------
+# 6. Optional extra sections -------------------------------------------------
+st.header("6 · Optional sections")
+st.caption("Add Executive Summary, What We Understood, Transition Plan, etc. "
+           "Each is placed where you choose. Leave empty for a standard 4-section proposal.")
+qc1, qc2 = st.columns([3, 1])
+with qc1:
+    quick = st.selectbox("Quick-add a common section", ["—"] + list(SECTION_PRESETS))
+with qc2:
+    st.write("")
+    st.write("")
+    if st.button("Add", disabled=(quick == "—")):
+        sp = SECTION_PRESETS[quick]
+        add_section(quick, sp["placement"], sp["paragraphs"], sp["bullets"])
+        st.rerun()
+if st.button("➕ Add blank section"):
+    add_section()
+    st.rerun()
+
+for i in list(st.session_state.section_ids):
+    with st.container(border=True):
+        cc1, cc2 = st.columns([3, 1])
+        with cc1:
+            st.text_input("Section title", key=f"sec_title_{i}")
+        with cc2:
+            st.write("")
+            st.write("")
+            if st.button("Remove", key=f"rm_sec_{i}"):
+                st.session_state.section_ids.remove(i)
+                st.rerun()
+        st.selectbox("Where it goes", list(PLACEMENT_LABELS), key=f"sec_place_{i}")
+        st.text_area("Paragraphs (one per line)", key=f"sec_paras_{i}", height=100)
+        st.text_area("Bullet points (one per line, optional)", key=f"sec_bullets_{i}", height=90)
+
+# Generate -------------------------------------------------------------------
 st.divider()
 make_pdf = st.checkbox("Also create PDF", value=True)
 
@@ -245,37 +334,46 @@ if st.button("Generate proposal", type="primary"):
     if not st.session_state.get("client_name", "").strip():
         st.error("Please enter a client name first.")
     else:
+        ss = st.session_state
         data = {
-            "client_name": st.session_state.client_name,
-            "site_office": st.session_state.site_office,
-            "contact_name": st.session_state.contact_name,
-            "contact_title": st.session_state.contact_title,
-            "contact_phone": st.session_state.contact_phone,
-            "client_address": st.session_state.client_address,
-            "date": st.session_state.date,
-            "reference": st.session_state.reference,
-            "cover_paragraphs": st.session_state.cover_paragraphs,
-            "frequency": st.session_state.frequency,
-            "duration": st.session_state.duration,
+            "client_name": ss.client_name,
+            "site_office": ss.site_office,
+            "contact_name": ss.contact_name,
+            "contact_title": ss.contact_title,
+            "contact_phone": ss.contact_phone,
+            "client_address": ss.client_address,
+            "date": ss.date,
+            "reference": ss.reference,
+            "cover_paragraphs": ss.cover_paragraphs,
+            "scope_style": "rotation" if is_rotation else "area",
+            "frequency": ss.frequency,
+            "duration": ss.duration,
             "areas": [
-                {"name": st.session_state.get(f"area_name_{i}", ""),
-                 "items": st.session_state.get(f"area_items_{i}", "")}
-                for i in st.session_state.area_ids
+                {"name": ss.get(f"area_name_{i}", ""),
+                 "items": ss.get(f"area_items_{i}", "")}
+                for i in ss.area_ids
             ],
-            "service_notes": st.session_state.service_notes,
+            "service_notes": ss.service_notes,
             "services": [
-                {"name": st.session_state.get(f"svc_name_{i}", ""),
-                 "description": st.session_state.get(f"svc_desc_{i}", ""),
-                 "schedule": st.session_state.get(f"svc_sched_{i}", ""),
-                 "price_ex": st.session_state.get(f"svc_ex_{i}", ""),
-                 "price_period": st.session_state.get(f"svc_period_{i}", ""),
-                 "price_inc": st.session_state.get(f"svc_inc_{i}", "")}
-                for i in st.session_state.service_ids
+                {"name": ss.get(f"svc_name_{i}", ""),
+                 "description": ss.get(f"svc_desc_{i}", ""),
+                 "schedule": ss.get(f"svc_sched_{i}", ""),
+                 "price_ex": ss.get(f"svc_ex_{i}", ""),
+                 "price_period": ss.get(f"svc_period_{i}", ""),
+                 "price_inc": ss.get(f"svc_inc_{i}", "")}
+                for i in ss.service_ids
             ],
-            "inclusions": st.session_state.inclusions,
+            "inclusions": ss.inclusions,
             "terms": [
                 {"label": str(r.get("Term", "")), "value": str(r.get("Detail", ""))}
                 for r in terms_edited.to_dict("records")
+            ],
+            "extra_sections": [
+                {"title": ss.get(f"sec_title_{i}", ""),
+                 "placement": PLACEMENT_LABELS.get(ss.get(f"sec_place_{i}", ""), "after_cover"),
+                 "paragraphs": ss.get(f"sec_paras_{i}", ""),
+                 "bullets": ss.get(f"sec_bullets_{i}", "")}
+                for i in ss.section_ids
             ],
         }
         with st.spinner("Building your proposal…"):
@@ -287,7 +385,6 @@ if st.button("Generate proposal", type="primary"):
             "pdf_wanted": make_pdf,
         }
 
-# show download buttons (persist across reruns)
 res = st.session_state.get("result")
 if res:
     st.success("Proposal ready.")
