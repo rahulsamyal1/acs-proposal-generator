@@ -154,12 +154,55 @@ def apply_preset(p):
         add_service(s)
 
 
-if "area_ids" not in st.session_state:
+# Placeholder cover letter shown on first load (edit the [bracketed] bits).
+DEFAULT_COVER = "\n".join([
+    "Thank you for the opportunity to inspect [your site] and submit this proposal for cleaning services at [Client name].",
+    "During the walkthrough we noted [what you observed - the current standard, anything being missed, and the main concern raised].",
+    "We understand you are looking for a reliable, easy-to-manage service that keeps a consistent standard each visit.",
+    "Our proposal is based on [X days per week, after hours], covering the main areas, kitchens, bathrooms and general presentation.",
+])
+
+CLIENT_PLACEHOLDERS = {
+    "client_name": "[Client name]",
+    "site_office": "[your site]",
+    "contact_name": "[Contact name]",
+    "contact_title": "[Title]",
+    "contact_phone": "[Phone]",
+    "client_address": "[Address]",
+    "date": "",
+    "reference": "",
+}
+
+
+def seed_defaults():
+    """Pre-fill the whole form with placeholder/example content on first load."""
+    for key, val in CLIENT_PLACEHOLDERS.items():
+        st.session_state[key] = val
+    st.session_state["cover_paragraphs"] = DEFAULT_COVER
+    if presets:
+        apply_preset(presets[0])
+    else:
+        add_area()
+        add_service()
+
+
+def clear_all():
+    """Empty the form to start from scratch."""
+    for key in list(CLIENT_PLACEHOLDERS) + ["cover_paragraphs", "frequency",
+                                            "duration", "service_notes", "inclusions"]:
+        st.session_state[key] = ""
     st.session_state.area_ids = []
     st.session_state.service_ids = []
     st.session_state.section_ids = []
     add_area()
     add_service()
+
+
+if "area_ids" not in st.session_state:
+    st.session_state.area_ids = []
+    st.session_state.service_ids = []
+    st.session_state.section_ids = []
+    seed_defaults()
 
 
 # ---------------------------------------------------------------------------
@@ -173,9 +216,17 @@ st.caption("Fill in the details, click Generate, and download the branded propos
 with st.container(border=True):
     names = ["— Blank —"] + [p["name"] for p in presets]
     choice = st.selectbox("Start from a job type (optional)", names, index=0)
-    if st.button("Apply preset", disabled=(choice == "— Blank —")):
-        apply_preset(presets[names.index(choice) - 1])
-        st.rerun()
+    pcol1, pcol2 = st.columns(2)
+    with pcol1:
+        if st.button("Apply preset", disabled=(choice == "— Blank —"), width="stretch"):
+            apply_preset(presets[names.index(choice) - 1])
+            st.rerun()
+    with pcol2:
+        if st.button("Start blank", width="stretch"):
+            clear_all()
+            st.rerun()
+    st.caption("The form opens pre-filled with placeholder text — edit the "
+               "[bracketed] parts. Use “Start blank” to clear everything.")
 
 # 1. Client details ----------------------------------------------------------
 st.header("1 · Client details")
