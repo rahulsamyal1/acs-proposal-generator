@@ -1,0 +1,199 @@
+{
+  "_comment": "Job-type presets. Pick one in the form to pre-fill the Scope, Investment and Terms, then edit anything for the specific client. You can add your own presets here: copy a block, give it a new name, and change the fields. Keep the JSON commas and brackets as they are.",
+  "presets": [
+    {
+      "name": "Office — 2x per week (after hours)",
+      "frequency": "2 days per week, after hours",
+      "duration": "As required to complete scope",
+      "areas": [
+        {
+          "name": "Office & Meeting Areas",
+          "items": [
+            "Vacuum and mop accessible floor areas",
+            "Dust and wipe accessible desks and surfaces",
+            "Empty bins and replace liners",
+            "Spot clean glass and partitions",
+            "General presentation check"
+          ]
+        },
+        {
+          "name": "Kitchen",
+          "items": [
+            "Clean and wipe benches and accessible surfaces",
+            "Clean sinks and taps",
+            "Load cups into dishwasher where required",
+            "Mop kitchen floor areas",
+            "General presentation check"
+          ]
+        },
+        {
+          "name": "Bathrooms",
+          "items": [
+            "Clean and sanitise toilets",
+            "Clean sinks, taps and mirrors",
+            "Restock consumables where supplied",
+            "Mop floors",
+            "Wipe touch points"
+          ]
+        }
+      ],
+      "service_notes": [
+        "Cleaning is scheduled twice weekly after business hours.",
+        "Service will be completed as required to cover the agreed scope.",
+        "Any additional work outside the agreed scope can be discussed and quoted separately."
+      ],
+      "services": [
+        {
+          "name": "Twice Weekly Commercial Cleaning Service",
+          "description": "Commercial cleaning as per agreed scope, including office areas, kitchen, bathrooms, rubbish removal and general presentation.",
+          "schedule": "Complete scheduled scope each visit",
+          "price_ex": "$X,XXX plus GST",
+          "price_period": "per month",
+          "price_inc": "$X,XXX incl GST"
+        }
+      ],
+      "inclusions": [
+        "Regular cleaner allocated to the site",
+        "Cleaner briefed on site requirements",
+        "Structured supervision and accountability",
+        "Ongoing communication and support",
+        "Equipment and cleaning chemicals supplied",
+        "Public Liability Insurance",
+        "WorkCover Insurance",
+        "Quality checks and follow up as required"
+      ]
+    },
+    {
+      "name": "Medical / Clinic — daily",
+      "frequency": "5 days per week, after hours",
+      "duration": "As required to complete scope",
+      "areas": [
+        {
+          "name": "Reception & Waiting",
+          "items": [
+            "Vacuum and mop all floor areas",
+            "Wipe and sanitise reception desk and seating",
+            "Spot clean glass and doors",
+            "Empty bins and replace liners",
+            "Sanitise high-touch points"
+          ]
+        },
+        {
+          "name": "Consult & Treatment Rooms",
+          "items": [
+            "Sanitise benches, basins and touch points",
+            "Mop hard floors",
+            "Empty clinical and general bins",
+            "Restock consumables where supplied",
+            "General presentation check"
+          ]
+        },
+        {
+          "name": "Bathrooms",
+          "items": [
+            "Clean and sanitise toilets and basins",
+            "Clean mirrors and taps",
+            "Restock consumables",
+            "Mop and sanitise floors",
+            "Wipe all touch points"
+          ]
+        }
+      ],
+      "service_notes": [
+        "Cleaning is scheduled daily after business hours.",
+        "Hospital-grade disinfectant used on all sanitised surfaces.",
+        "Cleaners follow infection-control and site access requirements."
+      ],
+      "services": [
+        {
+          "name": "Daily Commercial Cleaning Service",
+          "description": "Daily clean as per agreed scope, including reception, consult/treatment rooms, bathrooms, waste removal and sanitising of touch points.",
+          "schedule": "Complete scheduled scope each visit",
+          "price_ex": "$X,XXX plus GST",
+          "price_period": "per month",
+          "price_inc": "$X,XXX incl GST"
+        }
+      ],
+      "inclusions": [
+        "Regular cleaner allocated to the site",
+        "Hospital-grade disinfectants supplied",
+        "Cleaner briefed on infection control requirements",
+        "Structured supervision and accountability",
+        "Ongoing communication and support",
+        "Public Liability Insurance",
+        "WorkCover Insurance",
+        "Quality checks and follow up as required"
+      ]
+    },
+    {
+      "name": "Retail / Showroom — 3x per week",
+      "frequency": "3 days per week, after hours",
+      "duration": "As required to complete scope",
+      "areas": [
+        {
+          "name": "Shop Floor & Display",
+          "items": [
+            "Vacuum and mop all floor areas",
+            "Dust accessible shelving and displays",
+            "Spot clean glass, doors and counters",
+            "Empty bins and replace liners",
+            "General presentation check"
+          ]
+        },
+        {
+          "name": "Staff & Back of House",
+          "items": [
+            "Clean kitchen / staff room benches and sink",
+            "Mop hard floors",
+            "Empty bins",
+            "Wipe touch points"
+          ]
+        },
+        {
+          "name": "Bathrooms",
+          "items": [
+            "Clean and sanitise toilets",
+            "Clean sinks, taps and mirrors",
+            "Restock consumables where supplied",
+            "Mop floors"
+          ]
+        }
+      ],
+      "service_notes": [
+        "Cleaning is scheduled three times weekly after trading hours.",
+        "Service will be completed as required to cover the agreed scope.",
+        "Any additional work outside the agreed scope can be discussed and quoted separately."
+      ],
+      "services": [
+        {
+          "name": "Commercial Cleaning Service (3x weekly)",
+          "description": "Cleaning as per agreed scope, including shop floor, staff areas, bathrooms, rubbish removal and general presentation.",
+          "schedule": "Complete scheduled scope each visit",
+          "price_ex": "$X,XXX plus GST",
+          "price_period": "per month",
+          "price_inc": "$X,XXX incl GST"
+        }
+      ],
+      "inclusions": [
+        "Regular cleaner allocated to the site",
+        "Cleaner briefed on site requirements",
+        "Structured supervision and accountability",
+        "Ongoing communication and support",
+        "Equipment and cleaning chemicals supplied",
+        "Public Liability Insurance",
+        "WorkCover Insurance",
+        "Quality checks and follow up as required"
+      ]
+    }
+  ],
+  "default_terms": [
+    {"label": "Service Start", "value": "To be confirmed once the proposal is approved."},
+    {"label": "Contract Period", "value": "Ongoing month-to-month, with 30 days' written notice to cancel."},
+    {"label": "Invoicing", "value": "Monthly invoices are issued at the end of each service month."},
+    {"label": "Payment Terms", "value": "Payment due within 7 days of invoice date."},
+    {"label": "Quality Assurance", "value": "Regular supervision check-ins and quality follow up as required."},
+    {"label": "Consumables", "value": "All cleaning supplies and equipment are included at no extra cost."},
+    {"label": "Insurance", "value": "$20M Public Liability and current WorkCover Insurance are maintained at all times."},
+    {"label": "Variations", "value": "Any changes to scope or frequency will be discussed and agreed in writing prior to adjustment."}
+  ]
+}
