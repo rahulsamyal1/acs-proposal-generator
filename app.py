@@ -431,21 +431,23 @@ if st.button("Generate proposal", type="primary"):
             docx_bytes = proposal.render_docx_bytes(data)
             pdf_bytes = proposal.docx_bytes_to_pdf_bytes(docx_bytes) if make_pdf else None
         fname = "ACS Proposal - " + proposal.safe_filename(data["client_name"])
+        st.session_state.gen_count = st.session_state.get("gen_count", 0) + 1
         st.session_state.result = {
             "docx": docx_bytes, "pdf": pdf_bytes, "fname": fname,
-            "pdf_wanted": make_pdf,
+            "pdf_wanted": make_pdf, "v": st.session_state.gen_count,
         }
 
 res = st.session_state.get("result")
 if res:
-    st.success("Proposal ready.")
+    st.success("Proposal ready — download below. (Re-generate after any edits.)")
     st.download_button(
         "⬇ Download Word (.docx)", res["docx"], res["fname"] + ".docx",
         mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        key="dl_docx_%d" % res["v"],
     )
     if res["pdf"]:
         st.download_button("⬇ Download PDF", res["pdf"], res["fname"] + ".pdf",
-                           mime="application/pdf")
+                           mime="application/pdf", key="dl_pdf_%d" % res["v"])
     elif res["pdf_wanted"]:
         st.info("PDF couldn't be produced here — the Word document is ready. "
                 "On the deployed app (with LibreOffice) the PDF is created automatically.")
