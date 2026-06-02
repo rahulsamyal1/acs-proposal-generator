@@ -103,7 +103,12 @@ def build_context(data):
         if name or lines:
             areas.append({"name": name, "lines": lines})
     scope_style = (data.get("scope_style") or "area").strip().lower()
-    scope_col = "Frequency" if scope_style == "rotation" else "Area"
+    scope_col = "FREQUENCY" if scope_style == "rotation" else "AREA"
+
+    # split inclusions into two columns (column-major, to match the C2 grid)
+    half = (len(inclusions) + 1) // 2
+    inclusions_left = inclusions[:half]
+    inclusions_right = inclusions[half:]
 
     # --- services / inclusions / terms ---
     services = []
@@ -176,6 +181,8 @@ def build_context(data):
         "service_notes": _clean_list(data.get("service_notes")),
         "services": services,
         "inclusion_rows": inclusion_rows,
+        "inclusions_left": inclusions_left,
+        "inclusions_right": inclusions_right,
         "terms": terms,
         "toc": toc,
         "num_cover": num_cover,
