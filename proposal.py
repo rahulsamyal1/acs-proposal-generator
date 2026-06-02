@@ -16,11 +16,18 @@ import re
 import shutil
 import subprocess
 import tempfile
+import threading
+import time
 from datetime import date
 from io import BytesIO
 
 import jinja2
 from docxtpl import DocxTemplate
+
+# Only one LibreOffice conversion runs at a time (process-wide) so concurrent
+# users can't spawn several soffice processes and exhaust the container's RAM.
+_CONVERT_LOCK = threading.Lock()
+_TEMP_PREFIX = "acs_pdf_"
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 TEMPLATE_PATH = os.path.join(HERE, "template", "proposal_template.docx")
@@ -219,6 +226,29 @@ def _find_soffice():
     return win if os.path.exists(win) else None
 
 
+def sweep_stale_temp(max_age_seconds=3600):
+    """Remove orphaned conversion temp dirs (e.g. left behind if soffice was
+    OOM-killed). Safe to call any time; never raises."""
+    base = tempfile.gettempdir()
+    try:
+        now = time.time()
+        for name in os.listdir(base):
+            if not name.startswith(_TEMP_PREFIX):
+                continue
+            path = os.path.join(base, name)
+            try:
+                if now - os.path.getmtime(path) > max_age_seconds:
+                    shutil.rmtree(path, ignore_errors=True)
+            except OSError:
+                pass
+    except OSError:
+        pass
+
+
+# Sweep once when the module is first imported (i.e. on app start).
+sweep_stale_temp()
+
+
 def docx_bytes_to_pdf_bytes(docx_bytes):
     """Convert .docx bytes to .pdf bytes via LibreOffice. Returns None if
     LibreOffice is unavailable or conversion fails."""
@@ -226,7 +256,8 @@ def docx_bytes_to_pdf_bytes(docx_bytes):
     if not soffice:
         return None
 
-    tmp = tempfile.mkdtemp(prefix="acs_pdf_")
+    sweep_stale_temp()  # opportunistically clear any orphaned temp dirs
+    tmp = tempfile.mkdtemp(prefix=_TEMP_PREFIX)
     try:
         docx_path = os.path.join(tmp, "proposal.docx")
         with open(docx_path, "wb") as fh:
@@ -238,10 +269,26 @@ def docx_bytes_to_pdf_bytes(docx_bytes):
             "-env:UserInstallation=file://" + profile.replace("\\", "/"),
             "--convert-to", "pdf", "--outdir", tmp, docx_path,
         ]
-        try:
-            subprocess.run(cmd, capture_output=True, timeout=120, check=False)
-        except Exception:  # noqa: BLE001
-            return None
+        # Serialize conversions and hard-kill a hung/over-time soffice so it
+        # can't linger consuming RAM.
+        with _CONVERT_LOCK:
+            try:
+                proc = subprocess.Popen(cmd, stdout=subprocess.PIPE,
+                                        stderr=subprocess.PIPE)
+            except Exception:  # noqa: BLE001
+                return None
+            try:
+                proc.communicate(timeout=120)
+            except subprocess.TimeoutExpired:
+                proc.kill()
+                proc.communicate()
+                return None
+            except Exception:  # noqa: BLE001
+                try:
+                    proc.kill()
+                except Exception:  # noqa: BLE001
+                    pass
+                return None
 
         pdf_path = os.path.join(tmp, "proposal.pdf")
         if os.path.exists(pdf_path):
