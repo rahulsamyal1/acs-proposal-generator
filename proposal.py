@@ -150,8 +150,9 @@ def build_context(data):
 
     def number(title):
         counter["n"] += 1
-        toc.append({"num": counter["n"], "title": title})
-        return counter["n"]
+        pad = "%02d" % counter["n"]
+        toc.append({"num": pad, "title": title})
+        return pad
 
     num_cover = number("Cover Letter")
     for sec in buckets["after_cover"]:
