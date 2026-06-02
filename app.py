@@ -257,36 +257,16 @@ st.text_area("Letter paragraphs (one paragraph per line)", key="cover_paragraphs
 
 # 3. Scope of work -----------------------------------------------------------
 st.header("3 · Scope of work")
-_ensure("scope_style_label", "By area")
-scope_label = st.radio(
-    "How is the scope organised?",
-    ["By area", "By rotation frequency"],
-    horizontal=True, key="scope_style_label",
-)
-is_rotation = scope_label == "By rotation frequency"
+_ensure("frequency", "")
+st.text_input("Cleaning frequency", key="frequency",
+              placeholder="e.g. 2 days per week, after hours")
 
-c3, c4 = st.columns(2)
-with c3:
-    _ensure("frequency", "")
-    st.text_input("Frequency", key="frequency", placeholder="2 days per week, after hours")
-with c4:
-    _ensure("duration", "")
-    st.text_input("Duration", key="duration", placeholder="As required to complete scope")
-
-st.markdown("**Rotation categories**" if is_rotation else "**Areas**")
-if is_rotation:
-    if st.button("Use Daily / Weekly / Fortnightly / Monthly rows"):
-        st.session_state.area_ids = []
-        for nm in ["Daily Priorities", "Weekly", "Fortnightly", "Monthly / As required"]:
-            add_area(nm)
-        st.rerun()
-
-name_label = "Category name" if is_rotation else "Area name"
+st.markdown("**Areas**")
 for i in list(st.session_state.area_ids):
     with st.container(border=True):
         cc1, cc2 = st.columns([3, 1])
         with cc1:
-            st.text_input(name_label, key=f"area_name_{i}")
+            st.text_input("Area name", key=f"area_name_{i}")
         with cc2:
             st.write("")
             st.write("")
@@ -395,9 +375,9 @@ if st.button("Generate proposal", type="primary"):
             "date": ss.date,
             "reference": ss.reference,
             "cover_paragraphs": ss.cover_paragraphs,
-            "scope_style": "rotation" if is_rotation else "area",
+            "scope_style": "area",
             "frequency": ss.frequency,
-            "duration": ss.duration,
+            "duration": "",
             "areas": [
                 {"name": ss.get(f"area_name_{i}", ""),
                  "items": ss.get(f"area_items_{i}", "")}

@@ -1,189 +1,113 @@
 {
-  "_comment": "Job-type presets. Pick one in the form to pre-fill the Scope, Investment and Terms, then edit anything for the specific client. You can add your own presets here: copy a block, give it a new name, and change the fields. Keep the JSON commas and brackets as they are.",
+  "_comment": "Frequency-based job presets. Pick one to pre-fill the scope, service line and inclusions, then edit anything for the specific client. To add your own: copy a block, change the name/frequency/areas. Keep the commas and brackets as they are.",
   "presets": [
     {
-      "name": "Office — 2x per week (after hours)",
-      "frequency": "2 days per week, after hours",
-      "duration": "As required to complete scope",
+      "name": "Office cleaning — once per week",
+      "frequency": "Once per week, after hours",
       "areas": [
-        {
-          "name": "Office & Meeting Areas",
-          "items": [
-            "Vacuum and mop accessible floor areas",
-            "Dust and wipe accessible desks and surfaces",
-            "Empty bins and replace liners",
-            "Spot clean glass and partitions",
-            "General presentation check"
-          ]
-        },
-        {
-          "name": "Kitchen",
-          "items": [
-            "Clean and wipe benches and accessible surfaces",
-            "Clean sinks and taps",
-            "Load cups into dishwasher where required",
-            "Mop kitchen floor areas",
-            "General presentation check"
-          ]
-        },
-        {
-          "name": "Bathrooms",
-          "items": [
-            "Clean and sanitise toilets",
-            "Clean sinks, taps and mirrors",
-            "Restock consumables where supplied",
-            "Mop floors",
-            "Wipe touch points"
-          ]
-        }
+        {"name": "Office and meeting areas", "items": ["Vacuum and mop accessible floor areas", "Dust and wipe accessible desks and surfaces", "Empty bins and replace liners", "Spot clean glass and partitions", "General presentation check"]},
+        {"name": "Kitchen", "items": ["Clean and wipe benches and accessible surfaces", "Clean sinks and taps", "Load cups into dishwasher where required", "Mop kitchen floor areas", "General presentation check"]},
+        {"name": "Bathrooms", "items": ["Clean and sanitise toilets", "Clean sinks, taps and mirrors", "Restock consumables where supplied", "Mop floors", "Wipe touch points"]}
       ],
-      "service_notes": [
-        "Cleaning is scheduled twice weekly after business hours.",
-        "Service will be completed as required to cover the agreed scope.",
-        "Any additional work outside the agreed scope can be discussed and quoted separately."
-      ],
-      "services": [
-        {
-          "name": "Twice Weekly Commercial Cleaning Service",
-          "description": "Commercial cleaning as per agreed scope, including office areas, kitchen, bathrooms, rubbish removal and general presentation.",
-          "schedule": "Complete scheduled scope each visit",
-          "price_ex": "$X,XXX plus GST",
-          "price_period": "per month",
-          "price_inc": "$X,XXX incl GST"
-        }
-      ],
-      "inclusions": [
-        "Regular cleaner allocated to the site",
-        "Cleaner briefed on site requirements",
-        "Structured supervision and accountability",
-        "Ongoing communication and support",
-        "Equipment and cleaning chemicals supplied",
-        "Public Liability Insurance",
-        "WorkCover Insurance",
-        "Quality checks and follow up as required"
-      ]
+      "service_notes": ["Cleaning is scheduled once per week after hours.", "Service is completed as required to cover the agreed scope.", "Any additional work outside the agreed scope can be discussed and quoted separately."],
+      "services": [{"name": "Weekly Commercial Cleaning Service", "description": "Commercial cleaning as per agreed scope, including office areas, kitchen, bathrooms, rubbish removal and general presentation.", "schedule": "Complete scheduled scope each visit", "price_ex": "$X,XXX plus GST", "price_period": "per month", "price_inc": "$X,XXX incl GST per month"}],
+      "inclusions": ["Regular cleaner allocated to the site", "Cleaner briefed on site requirements", "Structured supervision and accountability", "Ongoing communication and support", "Equipment and cleaning chemicals supplied", "Public Liability Insurance", "WorkCover Insurance", "Quality checks and follow up as required"]
     },
     {
-      "name": "Medical / Clinic — daily",
-      "frequency": "5 days per week, after hours",
-      "duration": "As required to complete scope",
+      "name": "Office cleaning — twice per week",
+      "frequency": "Twice per week, after hours",
       "areas": [
-        {
-          "name": "Reception & Waiting",
-          "items": [
-            "Vacuum and mop all floor areas",
-            "Wipe and sanitise reception desk and seating",
-            "Spot clean glass and doors",
-            "Empty bins and replace liners",
-            "Sanitise high-touch points"
-          ]
-        },
-        {
-          "name": "Consult & Treatment Rooms",
-          "items": [
-            "Sanitise benches, basins and touch points",
-            "Mop hard floors",
-            "Empty clinical and general bins",
-            "Restock consumables where supplied",
-            "General presentation check"
-          ]
-        },
-        {
-          "name": "Bathrooms",
-          "items": [
-            "Clean and sanitise toilets and basins",
-            "Clean mirrors and taps",
-            "Restock consumables",
-            "Mop and sanitise floors",
-            "Wipe all touch points"
-          ]
-        }
+        {"name": "Office and meeting areas", "items": ["Vacuum and mop accessible floor areas", "Dust and wipe accessible desks and surfaces", "Empty bins and replace liners", "Spot clean glass and partitions", "General presentation check"]},
+        {"name": "Kitchen", "items": ["Clean and wipe benches and accessible surfaces", "Clean sinks and taps", "Load cups into dishwasher where required", "Mop kitchen floor areas", "General presentation check"]},
+        {"name": "Bathrooms", "items": ["Clean and sanitise toilets", "Clean sinks, taps and mirrors", "Restock consumables where supplied", "Mop floors", "Wipe touch points"]}
       ],
-      "service_notes": [
-        "Cleaning is scheduled daily after business hours.",
-        "Hospital-grade disinfectant used on all sanitised surfaces.",
-        "Cleaners follow infection-control and site access requirements."
-      ],
-      "services": [
-        {
-          "name": "Daily Commercial Cleaning Service",
-          "description": "Daily clean as per agreed scope, including reception, consult/treatment rooms, bathrooms, waste removal and sanitising of touch points.",
-          "schedule": "Complete scheduled scope each visit",
-          "price_ex": "$X,XXX plus GST",
-          "price_period": "per month",
-          "price_inc": "$X,XXX incl GST"
-        }
-      ],
-      "inclusions": [
-        "Regular cleaner allocated to the site",
-        "Hospital-grade disinfectants supplied",
-        "Cleaner briefed on infection control requirements",
-        "Structured supervision and accountability",
-        "Ongoing communication and support",
-        "Public Liability Insurance",
-        "WorkCover Insurance",
-        "Quality checks and follow up as required"
-      ]
+      "service_notes": ["Cleaning is scheduled twice per week after hours.", "Service is completed as required to cover the agreed scope.", "Any additional work outside the agreed scope can be discussed and quoted separately."],
+      "services": [{"name": "Twice Weekly Commercial Cleaning Service", "description": "Commercial cleaning as per agreed scope, including office areas, kitchen, bathrooms, rubbish removal and general presentation.", "schedule": "Complete scheduled scope each visit", "price_ex": "$X,XXX plus GST", "price_period": "per month", "price_inc": "$X,XXX incl GST per month"}],
+      "inclusions": ["Regular cleaner allocated to the site", "Cleaner briefed on site requirements", "Structured supervision and accountability", "Ongoing communication and support", "Equipment and cleaning chemicals supplied", "Public Liability Insurance", "WorkCover Insurance", "Quality checks and follow up as required"]
     },
     {
-      "name": "Retail / Showroom — 3x per week",
+      "name": "Office cleaning — 3 days per week",
       "frequency": "3 days per week, after hours",
-      "duration": "As required to complete scope",
       "areas": [
-        {
-          "name": "Shop Floor & Display",
-          "items": [
-            "Vacuum and mop all floor areas",
-            "Dust accessible shelving and displays",
-            "Spot clean glass, doors and counters",
-            "Empty bins and replace liners",
-            "General presentation check"
-          ]
-        },
-        {
-          "name": "Staff & Back of House",
-          "items": [
-            "Clean kitchen / staff room benches and sink",
-            "Mop hard floors",
-            "Empty bins",
-            "Wipe touch points"
-          ]
-        },
-        {
-          "name": "Bathrooms",
-          "items": [
-            "Clean and sanitise toilets",
-            "Clean sinks, taps and mirrors",
-            "Restock consumables where supplied",
-            "Mop floors"
-          ]
-        }
+        {"name": "Office and meeting areas", "items": ["Vacuum and mop accessible floor areas", "Dust and wipe accessible desks and surfaces", "Empty bins and replace liners", "Spot clean glass and partitions", "General presentation check"]},
+        {"name": "Kitchen", "items": ["Clean and wipe benches and accessible surfaces", "Clean sinks and taps", "Load cups into dishwasher where required", "Mop kitchen floor areas", "General presentation check"]},
+        {"name": "Bathrooms", "items": ["Clean and sanitise toilets", "Clean sinks, taps and mirrors", "Restock consumables where supplied", "Mop floors", "Wipe touch points"]}
       ],
-      "service_notes": [
-        "Cleaning is scheduled three times weekly after trading hours.",
-        "Service will be completed as required to cover the agreed scope.",
-        "Any additional work outside the agreed scope can be discussed and quoted separately."
+      "service_notes": ["Cleaning is scheduled 3 days per week after hours.", "Service is completed as required to cover the agreed scope.", "Any additional work outside the agreed scope can be discussed and quoted separately."],
+      "services": [{"name": "Commercial Cleaning Service (3x weekly)", "description": "Commercial cleaning as per agreed scope, including office areas, kitchen, bathrooms, rubbish removal and general presentation.", "schedule": "Complete scheduled scope each visit", "price_ex": "$X,XXX plus GST", "price_period": "per month", "price_inc": "$X,XXX incl GST per month"}],
+      "inclusions": ["Regular cleaner allocated to the site", "Cleaner briefed on site requirements", "Structured supervision and accountability", "Ongoing communication and support", "Equipment and cleaning chemicals supplied", "Public Liability Insurance", "WorkCover Insurance", "Quality checks and follow up as required"]
+    },
+    {
+      "name": "Office cleaning — 5 days per week",
+      "frequency": "5 days per week, after hours",
+      "areas": [
+        {"name": "Office and meeting areas", "items": ["Vacuum and mop accessible floor areas", "Dust and wipe accessible desks and surfaces", "Empty bins and replace liners", "Spot clean glass and partitions", "General presentation check"]},
+        {"name": "Kitchen", "items": ["Clean and wipe benches and accessible surfaces", "Clean sinks and taps", "Load cups into dishwasher where required", "Mop kitchen floor areas", "General presentation check"]},
+        {"name": "Bathrooms", "items": ["Clean and sanitise toilets", "Clean sinks, taps and mirrors", "Restock consumables where supplied", "Mop floors", "Wipe touch points"]}
       ],
-      "services": [
-        {
-          "name": "Commercial Cleaning Service (3x weekly)",
-          "description": "Cleaning as per agreed scope, including shop floor, staff areas, bathrooms, rubbish removal and general presentation.",
-          "schedule": "Complete scheduled scope each visit",
-          "price_ex": "$X,XXX plus GST",
-          "price_period": "per month",
-          "price_inc": "$X,XXX incl GST"
-        }
+      "service_notes": ["Cleaning is scheduled 5 days per week after hours.", "Service is completed as required to cover the agreed scope.", "Any additional work outside the agreed scope can be discussed and quoted separately."],
+      "services": [{"name": "Daily Commercial Cleaning Service", "description": "Commercial cleaning as per agreed scope, including office areas, kitchen, bathrooms, rubbish removal and general presentation.", "schedule": "Complete scheduled scope each visit", "price_ex": "$X,XXX plus GST", "price_period": "per month", "price_inc": "$X,XXX incl GST per month"}],
+      "inclusions": ["Regular cleaner allocated to the site", "Cleaner briefed on site requirements", "Structured supervision and accountability", "Ongoing communication and support", "Equipment and cleaning chemicals supplied", "Public Liability Insurance", "WorkCover Insurance", "Quality checks and follow up as required"]
+    },
+    {
+      "name": "Strata cleaning — weekly",
+      "frequency": "Once per week",
+      "areas": [
+        {"name": "Entry and common areas", "items": ["Clean and mop entry, foyer and common floors", "Spot clean glass doors and touch points", "Wipe mailboxes and ledges", "General presentation check"]},
+        {"name": "Stairwells and lifts", "items": ["Mop stairs and landings", "Wipe handrails and lift interiors", "Spot clean walls and touch points"]},
+        {"name": "Bin store and common bathrooms", "items": ["Clean and sanitise common toilets where applicable", "Hose and tidy bin store area", "Wipe touch points", "General presentation check"]}
       ],
-      "inclusions": [
-        "Regular cleaner allocated to the site",
-        "Cleaner briefed on site requirements",
-        "Structured supervision and accountability",
-        "Ongoing communication and support",
-        "Equipment and cleaning chemicals supplied",
-        "Public Liability Insurance",
-        "WorkCover Insurance",
-        "Quality checks and follow up as required"
-      ]
+      "service_notes": ["Cleaning is scheduled once per week.", "Service is completed as required to cover the agreed scope.", "Any additional work outside the agreed scope can be discussed and quoted separately."],
+      "services": [{"name": "Weekly Strata Cleaning Service", "description": "Common-area cleaning as per agreed scope, including entry, common floors, stairwells, lifts, bin store and general presentation.", "schedule": "Complete scheduled scope each visit", "price_ex": "$X,XXX plus GST", "price_period": "per month", "price_inc": "$X,XXX incl GST per month"}],
+      "inclusions": ["Regular cleaner allocated to the site", "Cleaner briefed on site requirements", "Structured supervision and accountability", "Ongoing communication and support", "Equipment and cleaning chemicals supplied", "Public Liability Insurance", "WorkCover Insurance", "Quality checks and follow up as required"]
+    },
+    {
+      "name": "Strata cleaning — fortnightly",
+      "frequency": "Once per fortnight",
+      "areas": [
+        {"name": "Entry and common areas", "items": ["Clean and mop entry, foyer and common floors", "Spot clean glass doors and touch points", "Wipe mailboxes and ledges", "General presentation check"]},
+        {"name": "Stairwells and lifts", "items": ["Mop stairs and landings", "Wipe handrails and lift interiors", "Spot clean walls and touch points"]},
+        {"name": "Bin store and common bathrooms", "items": ["Clean and sanitise common toilets where applicable", "Hose and tidy bin store area", "Wipe touch points", "General presentation check"]}
+      ],
+      "service_notes": ["Cleaning is scheduled once per fortnight.", "Service is completed as required to cover the agreed scope.", "Any additional work outside the agreed scope can be discussed and quoted separately."],
+      "services": [{"name": "Fortnightly Strata Cleaning Service", "description": "Common-area cleaning as per agreed scope, including entry, common floors, stairwells, lifts, bin store and general presentation.", "schedule": "Complete scheduled scope each visit", "price_ex": "$X,XXX plus GST", "price_period": "per month", "price_inc": "$X,XXX incl GST per month"}],
+      "inclusions": ["Regular cleaner allocated to the site", "Cleaner briefed on site requirements", "Structured supervision and accountability", "Ongoing communication and support", "Equipment and cleaning chemicals supplied", "Public Liability Insurance", "WorkCover Insurance", "Quality checks and follow up as required"]
+    },
+    {
+      "name": "Medical cleaning — 3 days per week",
+      "frequency": "3 days per week, after hours",
+      "areas": [
+        {"name": "Reception and waiting", "items": ["Vacuum and mop all floor areas", "Wipe and sanitise reception desk and seating", "Spot clean glass and doors", "Empty bins and replace liners", "Sanitise high-touch points"]},
+        {"name": "Consult and treatment rooms", "items": ["Sanitise benches, basins and touch points", "Mop hard floors", "Empty clinical and general bins", "Restock consumables where supplied", "General presentation check"]},
+        {"name": "Bathrooms", "items": ["Clean and sanitise toilets and basins", "Clean mirrors and taps", "Restock consumables", "Mop and sanitise floors", "Wipe all touch points"]}
+      ],
+      "service_notes": ["Cleaning is scheduled 3 days per week after hours.", "Hospital-grade disinfectant used on sanitised surfaces.", "Cleaners follow infection-control and site access requirements."],
+      "services": [{"name": "Medical Cleaning Service (3x weekly)", "description": "Medical cleaning as per agreed scope, including reception, consult/treatment rooms, bathrooms, waste removal and sanitising of touch points.", "schedule": "Complete scheduled scope each visit", "price_ex": "$X,XXX plus GST", "price_period": "per month", "price_inc": "$X,XXX incl GST per month"}],
+      "inclusions": ["Regular cleaner allocated to the site", "Hospital-grade disinfectants supplied", "Cleaner briefed on infection control requirements", "Structured supervision and accountability", "Ongoing communication and support", "Public Liability Insurance", "WorkCover Insurance", "Quality checks and follow up as required"]
+    },
+    {
+      "name": "Medical cleaning — 5 days per week",
+      "frequency": "5 days per week, after hours",
+      "areas": [
+        {"name": "Reception and waiting", "items": ["Vacuum and mop all floor areas", "Wipe and sanitise reception desk and seating", "Spot clean glass and doors", "Empty bins and replace liners", "Sanitise high-touch points"]},
+        {"name": "Consult and treatment rooms", "items": ["Sanitise benches, basins and touch points", "Mop hard floors", "Empty clinical and general bins", "Restock consumables where supplied", "General presentation check"]},
+        {"name": "Bathrooms", "items": ["Clean and sanitise toilets and basins", "Clean mirrors and taps", "Restock consumables", "Mop and sanitise floors", "Wipe all touch points"]}
+      ],
+      "service_notes": ["Cleaning is scheduled 5 days per week after hours.", "Hospital-grade disinfectant used on sanitised surfaces.", "Cleaners follow infection-control and site access requirements."],
+      "services": [{"name": "Daily Medical Cleaning Service", "description": "Medical cleaning as per agreed scope, including reception, consult/treatment rooms, bathrooms, waste removal and sanitising of touch points.", "schedule": "Complete scheduled scope each visit", "price_ex": "$X,XXX plus GST", "price_period": "per month", "price_inc": "$X,XXX incl GST per month"}],
+      "inclusions": ["Regular cleaner allocated to the site", "Hospital-grade disinfectants supplied", "Cleaner briefed on infection control requirements", "Structured supervision and accountability", "Ongoing communication and support", "Public Liability Insurance", "WorkCover Insurance", "Quality checks and follow up as required"]
+    },
+    {
+      "name": "Industrial cleaning — 5 days per week",
+      "frequency": "5 days per week",
+      "areas": [
+        {"name": "Office and amenities", "items": ["Vacuum and mop office floor areas", "Wipe desks and high-touch points", "Empty bins and replace liners", "General presentation check"]},
+        {"name": "Bathrooms and lunchroom", "items": ["Clean and sanitise toilets and basins", "Clean and wipe lunchroom benches and sink", "Restock consumables where supplied", "Mop floors", "Wipe touch points"]},
+        {"name": "Workshop / warehouse floor", "items": ["Sweep and/or scrub accessible floor areas", "Remove rubbish and tidy walkways", "Spot clean as required", "Do not touch tools, equipment or restricted areas"]}
+      ],
+      "service_notes": ["Cleaning is scheduled 5 days per week.", "Workshop and equipment areas are floor and amenity cleaning only unless otherwise agreed.", "ACS cleaners will not touch tools, equipment or restricted work areas."],
+      "services": [{"name": "Daily Industrial Cleaning Service", "description": "Industrial cleaning as per agreed scope, including office, amenities, bathrooms, accessible workshop/warehouse floor areas, rubbish removal and general presentation.", "schedule": "Complete scheduled scope each visit", "price_ex": "$X,XXX plus GST", "price_period": "per month", "price_inc": "$X,XXX incl GST per month"}],
+      "inclusions": ["Regular cleaner allocated to the site", "Cleaner briefed on secure areas and site requirements", "Structured supervision and accountability", "Ongoing communication and support", "Equipment and cleaning chemicals supplied", "Public Liability Insurance", "WorkCover Insurance", "Quality checks and follow up as required"]
     }
   ],
   "default_terms": [
