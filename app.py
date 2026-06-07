@@ -126,9 +126,12 @@ def add_service(svc=None):
     st.session_state[f"svc_name_{i}"] = svc.get("name", "")
     st.session_state[f"svc_desc_{i}"] = svc.get("description", "")
     st.session_state[f"svc_sched_{i}"] = svc.get("schedule", "")
-    st.session_state[f"svc_ex_{i}"] = svc.get("price_ex", "")
+    try:
+        amt = float(svc.get("amount_ex") or 0)
+    except (TypeError, ValueError):
+        amt = 0.0
+    st.session_state[f"svc_amt_{i}"] = amt
     st.session_state[f"svc_period_{i}"] = svc.get("price_period", "per month")
-    st.session_state[f"svc_inc_{i}"] = svc.get("price_inc", "")
     st.session_state.service_ids.append(i)
 
 
@@ -198,6 +201,100 @@ def clear_all():
     add_service()
 
 
+GST_RATE = 1.10
+
+
+def _money(n):
+    try:
+        n = float(n)
+    except (TypeError, ValueError):
+        return ""
+    s = "{:,.2f}".format(n)
+    if s.endswith(".00"):
+        s = s[:-3]
+    return "$" + s
+
+
+def _service_for_render(i):
+    """Build a service row for the document, computing GST from the ex-GST amount."""
+    ss = st.session_state
+    try:
+        amt = float(ss.get(f"svc_amt_{i}", 0) or 0)
+    except (TypeError, ValueError):
+        amt = 0.0
+    if amt > 0:
+        price_ex = _money(amt) + " plus GST"
+        price_inc = _money(round(amt * GST_RATE, 2)) + " incl GST"
+    else:
+        price_ex = price_inc = ""
+    return {
+        "name": ss.get(f"svc_name_{i}", ""),
+        "description": ss.get(f"svc_desc_{i}", ""),
+        "schedule": ss.get(f"svc_sched_{i}", ""),
+        "price_ex": price_ex,
+        "price_period": ss.get(f"svc_period_{i}", ""),
+        "price_inc": price_inc,
+    }
+
+
+def collect_form(terms_records):
+    """Snapshot the whole form (raw values) — used for drafts and for generating."""
+    ss = st.session_state
+    return {
+        "client_name": ss.get("client_name", ""),
+        "site_office": ss.get("site_office", ""),
+        "contact_name": ss.get("contact_name", ""),
+        "contact_title": ss.get("contact_title", ""),
+        "contact_phone": ss.get("contact_phone", ""),
+        "client_address": ss.get("client_address", ""),
+        "date": ss.get("date", ""),
+        "reference": ss.get("reference", ""),
+        "cover_paragraphs": ss.get("cover_paragraphs", ""),
+        "frequency": ss.get("frequency", ""),
+        "areas": [{"name": ss.get(f"area_name_{i}", ""), "items": ss.get(f"area_items_{i}", "")}
+                  for i in ss.area_ids],
+        "service_notes": ss.get("service_notes", ""),
+        "services": [{"name": ss.get(f"svc_name_{i}", ""), "description": ss.get(f"svc_desc_{i}", ""),
+                      "schedule": ss.get(f"svc_sched_{i}", ""), "amount_ex": ss.get(f"svc_amt_{i}", 0),
+                      "price_period": ss.get(f"svc_period_{i}", "")} for i in ss.service_ids],
+        "inclusions": ss.get("inclusions", ""),
+        "terms": terms_records,
+        "extra_sections": [{"title": ss.get(f"sec_title_{i}", ""), "placement": ss.get(f"sec_place_{i}", "After Cover Letter"),
+                            "paragraphs": ss.get(f"sec_paras_{i}", ""), "bullets": ss.get(f"sec_bullets_{i}", "")}
+                           for i in ss.section_ids],
+    }
+
+
+def restore_form(form):
+    """Rebuild the form from a saved draft dict."""
+    ss = st.session_state
+    for k in CLIENT_PLACEHOLDERS:
+        ss[k] = form.get(k, "")
+    ss["cover_paragraphs"] = form.get("cover_paragraphs", "")
+    ss["frequency"] = form.get("frequency", "")
+    ss["service_notes"] = form.get("service_notes", "")
+    ss["inclusions"] = form.get("inclusions", "")
+    ss.area_ids = []
+    for a in form.get("areas", []):
+        add_area(a.get("name", ""), a.get("items", ""))
+    if not ss.area_ids:
+        add_area()
+    ss.service_ids = []
+    for s in form.get("services", []):
+        add_service(s)
+    if not ss.service_ids:
+        add_service()
+    ss.section_ids = []
+    for s in form.get("extra_sections", []):
+        add_section(s.get("title", ""), s.get("placement", "After Cover Letter"),
+                    s.get("paragraphs", ""), s.get("bullets", ""))
+    terms = form.get("terms", [])
+    if terms:
+        ss.terms_df = pd.DataFrame([{"Term": t.get("label", ""), "Detail": t.get("value", "")}
+                                    for t in terms])
+        ss.pop("terms_editor", None)
+
+
 if "area_ids" not in st.session_state:
     st.session_state.area_ids = []
     st.session_state.service_ids = []
@@ -227,6 +324,20 @@ with st.container(border=True):
             st.rerun()
     st.caption("The form opens pre-filled with placeholder text — edit the "
                "[bracketed] parts. Use “Start blank” to clear everything.")
+
+with st.container(border=True):
+    st.markdown("**💾 Drafts** — your work is **not** auto-saved. Save a draft before "
+                "refreshing or closing, then load it here to continue.")
+    _up = st.file_uploader("Load a saved draft (.json)", type=["json"], key="draft_upload")
+    if st.button("Load this draft", disabled=(_up is None)):
+        try:
+            restore_form(json.loads(_up.getvalue().decode("utf-8")))
+            st.session_state["_draft_loaded"] = True
+            st.rerun()
+        except Exception as exc:  # noqa: BLE001
+            st.error("Could not read that draft file: %s" % exc)
+if st.session_state.pop("_draft_loaded", False):
+    st.success("Draft loaded.")
 
 # 1. Client details ----------------------------------------------------------
 st.header("1 · Client details")
@@ -300,8 +411,11 @@ for i in list(st.session_state.service_ids):
             st.text_input("Schedule", key=f"svc_sched_{i}")
             st.text_input("Period", key=f"svc_period_{i}")
         with d2:
-            st.text_input("Price (ex GST)", key=f"svc_ex_{i}", placeholder="$1,040 plus GST")
-            st.text_input("Price (incl GST)", key=f"svc_inc_{i}", placeholder="$1,144 incl GST")
+            amt = st.number_input("Monthly amount ex GST ($)", key=f"svc_amt_{i}",
+                                  min_value=0.0, step=10.0, format="%.2f")
+            if amt and amt > 0:
+                st.caption("→ %s incl GST  (auto, 10%% GST added)"
+                           % _money(round(amt * GST_RATE, 2)))
 if st.button("➕ Add service line"):
     add_service()
     st.rerun()
@@ -357,55 +471,38 @@ for i in list(st.session_state.section_ids):
         st.text_area("Paragraphs (one per line)", key=f"sec_paras_{i}", height=100)
         st.text_area("Bullet points (one per line, optional)", key=f"sec_bullets_{i}", height=90)
 
-# Generate -------------------------------------------------------------------
-st.divider()
+# Save draft + Generate ------------------------------------------------------
+_terms_records = [{"label": str(r.get("Term", "")), "value": str(r.get("Detail", ""))}
+                  for r in terms_edited.to_dict("records")]
 
-if st.button("Generate proposal", type="primary"):
+st.divider()
+_sd1, _sd2 = st.columns(2)
+with _sd1:
+    st.download_button(
+        "💾 Save draft (.json)",
+        json.dumps(collect_form(_terms_records), indent=2, ensure_ascii=False).encode("utf-8"),
+        "ACS draft - %s.json" % proposal.safe_filename(st.session_state.get("client_name") or "draft"),
+        mime="application/json", width="stretch",
+    )
+with _sd2:
+    _gen = st.button("Generate proposal", type="primary", width="stretch")
+st.caption("Not auto-saved — Save a draft before refreshing or closing so you don't lose your work.")
+
+if _gen:
     if not st.session_state.get("client_name", "").strip():
         st.error("Please enter a client name first.")
     else:
         ss = st.session_state
-        data = {
-            "client_name": ss.client_name,
-            "site_office": ss.site_office,
-            "contact_name": ss.contact_name,
-            "contact_title": ss.contact_title,
-            "contact_phone": ss.contact_phone,
-            "client_address": ss.client_address,
-            "date": ss.date,
-            "reference": ss.reference,
-            "cover_paragraphs": ss.cover_paragraphs,
-            "scope_style": "area",
-            "frequency": ss.frequency,
-            "duration": "",
-            "areas": [
-                {"name": ss.get(f"area_name_{i}", ""),
-                 "items": ss.get(f"area_items_{i}", "")}
-                for i in ss.area_ids
-            ],
-            "service_notes": ss.service_notes,
-            "services": [
-                {"name": ss.get(f"svc_name_{i}", ""),
-                 "description": ss.get(f"svc_desc_{i}", ""),
-                 "schedule": ss.get(f"svc_sched_{i}", ""),
-                 "price_ex": ss.get(f"svc_ex_{i}", ""),
-                 "price_period": ss.get(f"svc_period_{i}", ""),
-                 "price_inc": ss.get(f"svc_inc_{i}", "")}
-                for i in ss.service_ids
-            ],
-            "inclusions": ss.inclusions,
-            "terms": [
-                {"label": str(r.get("Term", "")), "value": str(r.get("Detail", ""))}
-                for r in terms_edited.to_dict("records")
-            ],
-            "extra_sections": [
-                {"title": ss.get(f"sec_title_{i}", ""),
-                 "placement": PLACEMENT_LABELS.get(ss.get(f"sec_place_{i}", ""), "after_cover"),
-                 "paragraphs": ss.get(f"sec_paras_{i}", ""),
-                 "bullets": ss.get(f"sec_bullets_{i}", "")}
-                for i in ss.section_ids
-            ],
-        }
+        data = collect_form(_terms_records)
+        data["scope_style"] = "area"
+        data["duration"] = ""
+        data["services"] = [_service_for_render(i) for i in ss.service_ids]
+        data["extra_sections"] = [
+            {"title": s["title"],
+             "placement": PLACEMENT_LABELS.get(s["placement"], "after_cover"),
+             "paragraphs": s["paragraphs"], "bullets": s["bullets"]}
+            for s in data["extra_sections"]
+        ]
         with st.spinner("Building your proposal…"):
             docx_bytes = proposal.render_docx_bytes(data)
         fname = "ACS Proposal - " + proposal.safe_filename(data["client_name"])
