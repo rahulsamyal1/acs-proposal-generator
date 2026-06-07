@@ -38,8 +38,8 @@ SECTION_PRESETS = {
     },
     "What We Understood": {
         "placement": "After Cover Letter",
-        "paragraphs": "From the walkthrough and current schedule, our understanding is that you want a reliable standard while reviewing overall cost.",
-        "bullets": "Clean toilets and amenities\nClean kitchens and lunchrooms\nReception and client-facing areas kept presentable\nA stable cleaning team familiar with the site",
+        "paragraphs": "From our walkthrough and discussions, we understand the current cleaning has become inconsistent and the standard has slipped over time. Just as importantly, you want a provider who listens, is easy to deal with, and actually responds when something needs attention.\nOur focus is to take that frustration away — a reliable, well-managed service where you are not chasing missed work or dealing with a different cleaner every week. We have listened to what matters most to you, and this proposal is built around exactly that.",
+        "bullets": "A consistent, reliable standard on every visit\nClear communication and a quick response when issues are raised\nThe same trusted cleaner who gets to know your site\nA service that is genuinely easy for your team to manage",
     },
     "Our Cleaning Approach": {
         "placement": "After Cover Letter",
@@ -60,6 +60,21 @@ SECTION_PRESETS = {
         "placement": "After Investment Options",
         "paragraphs": "ACS Commercial Cleaning has experience across commercial offices, industrial sites, food production and long-term recurring contracts.",
         "bullets": "References available on request\nThe Salvation Army\nSt Pauls\nTurosi Food Solutions",
+    },
+    "Client Testimonials": {
+        "placement": "After Investment Options",
+        "paragraphs": "We believe the best proof of our service is what our clients say about working with us.\n“[Paste a short client testimonial here — what they were struggling with, and the difference ACS made.]”\n“[Add a second testimonial here if you have one.]”",
+        "bullets": "",
+    },
+    "Client References": {
+        "placement": "After Investment Options",
+        "paragraphs": "We are happy to provide direct references from clients who have worked with us over time. We can arrange a quick phone call with any of the following.",
+        "bullets": "The Salvation Army\nSt Pauls\nTurosi Food Solutions\n[Add another relevant reference]",
+    },
+    "First Clean Guarantee": {
+        "placement": "After Investment Options",
+        "paragraphs": "We back our work from day one. If anything in the first clean is not up to standard, simply let us know within 48 hours and we will return and put it right at no extra cost.\nThe goal is for you to see the difference from the very first visit.",
+        "bullets": "We return and re-clean any missed areas at no charge\nA supervisor checks the quality of the first clean\nClear communication if anything needs your input",
     },
 }
 

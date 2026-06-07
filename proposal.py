@@ -171,6 +171,7 @@ def build_context(data):
     for sec in buckets["after_investment"]:
         sec["number"] = number(sec["toc_title"])
     num_terms = number("Service Terms")
+    num_acceptance = number("Acceptance")
 
     return {
         "client_name": client_name,
@@ -197,6 +198,7 @@ def build_context(data):
         "num_scope": num_scope,
         "num_investment": num_investment,
         "num_terms": num_terms,
+        "num_acceptance": num_acceptance,
         "extra_after_cover": buckets["after_cover"],
         "extra_after_scope": buckets["after_scope"],
         "extra_after_investment": buckets["after_investment"],
