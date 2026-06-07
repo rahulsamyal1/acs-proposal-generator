@@ -34,12 +34,7 @@ PLACEMENT_LABELS = {
 SECTION_PRESETS = {
     "Executive Summary": {
         "placement": "After Cover Letter",
-        "paragraphs": "Following our site walk, the facility needs a structured cleaning approach tailored to its environment. This proposal is built around two priorities: reset the site to a clean, controlled standard, then maintain it consistently.",
-        "bullets": "",
-    },
-    "What We Understood": {
-        "placement": "After Cover Letter",
-        "paragraphs": "From our walkthrough and discussions, we understand the current cleaning has become inconsistent and the standard has slipped over time. Just as importantly, you want a provider who listens, is easy to deal with, and actually responds when something needs attention.\nOur focus is to take that frustration away — a reliable, well-managed service where you are not chasing missed work or dealing with a different cleaner every week. We have listened to what matters most to you, and this proposal is built around exactly that.",
+        "paragraphs": "From our walkthrough and discussions, we understand the current cleaning has become inconsistent and the standard has slipped over time. Just as importantly, you want a provider who listens, is easy to deal with, and actually responds when something needs attention.\nThis proposal is built around two priorities: reset the site to a clean, controlled standard, then maintain it consistently — a reliable, well-managed service where you are not chasing missed work or dealing with a different cleaner every week. We have listened to what matters most to you, and this proposal is built around exactly that.",
         "bullets": "A consistent, reliable standard on every visit\nClear communication and a quick response when issues are raised\nThe same trusted cleaner who gets to know your site\nA service that is genuinely easy for your team to manage",
     },
     "Our Cleaning Approach": {
@@ -463,7 +458,7 @@ terms_edited = st.data_editor(
 
 # 6. Optional extra sections -------------------------------------------------
 st.header("6 · Optional sections")
-st.caption("Add Executive Summary, What We Understood, Transition Plan, etc. "
+st.caption("Add Executive Summary, Transition Plan, Testimonials, etc. "
            "Each is placed where you choose. Leave empty for a standard 4-section proposal.")
 qc1, qc2 = st.columns([3, 1])
 with qc1:
