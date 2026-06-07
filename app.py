@@ -9,6 +9,7 @@ What We Understood, etc.) placed at chosen anchor points; scope by area or by
 rotation frequency.
 """
 
+import hashlib
 import json
 import os
 
@@ -310,6 +311,13 @@ def restore_form(form):
         ss.pop("terms_editor", None)
 
 
+def _form_sig(terms_records):
+    """A fingerprint of the whole form, so we can tell if anything changed
+    since the last time the proposal was generated."""
+    blob = json.dumps(collect_form(terms_records), sort_keys=True, default=str)
+    return hashlib.md5(blob.encode("utf-8")).hexdigest()
+
+
 if "area_ids" not in st.session_state:
     st.session_state.area_ids = []
     st.session_state.service_ids = []
@@ -524,12 +532,18 @@ if _gen:
         st.session_state.gen_count = st.session_state.get("gen_count", 0) + 1
         st.session_state.result = {
             "docx": docx_bytes, "pdf": None, "fname": fname,
-            "v": st.session_state.gen_count,
+            "v": st.session_state.gen_count, "sig": _form_sig(_terms_records),
         }
 
 res = st.session_state.get("result")
 if res:
-    st.success("Proposal ready — download below. (Re-generate after any edits.)")
+    stale = res.get("sig") and res["sig"] != _form_sig(_terms_records)
+    if stale:
+        st.warning("⚠️ You've changed the form since this was generated. "
+                   "Click **Generate proposal** again to refresh the download below "
+                   "(otherwise it will be the previous version).")
+    else:
+        st.success("Proposal ready — download below.")
     st.download_button(
         "⬇ Download Word (.docx)", res["docx"], res["fname"] + ".docx",
         mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
