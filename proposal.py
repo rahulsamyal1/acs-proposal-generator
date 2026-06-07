@@ -73,6 +73,8 @@ def _process_section(raw):
         "toc_title": title or "Section",  # table of contents text
         "paragraphs": paragraphs,
         "bullets": bullets,
+        # testimonial sections render their paragraphs as quote boxes
+        "kind": "quote" if "testimonial" in title.lower() else "normal",
     }
 
 

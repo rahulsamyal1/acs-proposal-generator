@@ -63,7 +63,7 @@ SECTION_PRESETS = {
     },
     "Client Testimonials": {
         "placement": "After Investment Options",
-        "paragraphs": "We believe the best proof of our service is what our clients say about working with us.\n“[Paste a short client testimonial here — what they were struggling with, and the difference ACS made.]”\n“[Add a second testimonial here if you have one.]”",
+        "paragraphs": "“[Paste a short client testimonial here — what they were struggling with, and the difference ACS made.]”\n“[Add a second client testimonial here if you have one.]”",
         "bullets": "",
     },
     "Client References": {
