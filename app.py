@@ -467,8 +467,8 @@ st.caption("Add Executive Summary, Transition Plan, Testimonials, etc. "
 st.checkbox("Include the HIA client testimonial (Meg Diola, Housing Industry Association) — "
             "recreated neatly with the HIA logo, placed before Service Terms",
             key="include_testimonial")
-st.checkbox("Include Compliance Documents — attaches our Labour Hire Licence, WorkCover and "
-            "Public Liability certificates to the end of the PDF",
+st.checkbox("Include Compliance Documents — adds our Labour Hire Licence, WorkCover and "
+            "Public Liability certificates (each on its own page, with the proposal header/footer)",
             key="include_compliance")
 qc1, qc2 = st.columns([3, 1])
 with qc1:
@@ -565,13 +565,8 @@ if res:
         if st.button("Create PDF", key="make_pdf_%d" % res["v"]):
             with st.spinner("Creating PDF…"):
                 pdf = proposal.docx_bytes_to_pdf_bytes(res["docx"])
-                if pdf and res.get("include_compliance"):
-                    pdf = proposal.append_compliance_pdfs(pdf)
             res["pdf_failed"] = pdf is None
             res["pdf"] = pdf
             st.session_state.result = res
             st.rerun()
         st.caption("PDF is generated only when you click — keeps the app fast and light.")
-    if res.get("include_compliance"):
-        st.caption("📎 The 3 compliance certificates are attached to the **PDF** "
-                   "(use Create PDF / Download PDF) — not to the Word file.")
