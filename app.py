@@ -32,13 +32,18 @@ PLACEMENT_LABELS = {
 
 # Quick-add templates for the common optional sections (titles + starter text).
 SECTION_PRESETS = {
-    "Executive Summary": {
+    "Our Understanding": {
         "placement": "After Cover Letter",
         "paragraphs": "From our walkthrough and discussions, we understand the current cleaning has become inconsistent and the standard has slipped over time. Just as importantly, you want a provider who listens, is easy to deal with, and actually responds when something needs attention.\nThis proposal is built around two priorities: reset the site to a clean, controlled standard, then maintain it consistently — a reliable, well-managed service where you are not chasing missed work or dealing with a different cleaner every week. We have listened to what matters most to you, and this proposal is built around exactly that.",
         "bullets": "A consistent, reliable standard on every visit\nClear communication and a quick response when issues are raised\nThe same trusted cleaner who gets to know your site\nA service that is genuinely easy for your team to manage",
     },
-    "Our Cleaning Approach": {
+    "Recommended Service Structure": {
         "placement": "After Cover Letter",
+        "paragraphs": "Based on what we saw on site and what matters most to you, we recommend a service structure that keeps the day-to-day standard consistent while handling deeper tasks on a sensible rotation. This keeps presentation high without paying for more frequency than the site actually needs.",
+        "bullets": "A set cleaning frequency matched to how your site is used\nThe same trusted cleaner allocated to your site\nDaily presentation priorities, with detail tasks on a planned rotation\nA clear, agreed scope so nothing is missed or doubled up",
+    },
+    "Our Cleaning Approach": {
+        "placement": "After Scope of Work",
         "paragraphs": "Not every task needs to be done daily to keep a good standard. We separate daily cleaning priorities from rotating detail tasks.\nThe goal is not to reduce the standard - it is to focus daily cleaning time where it matters most.",
         "bullets": "",
     },
@@ -166,6 +171,29 @@ def apply_preset(p):
     st.session_state.service_ids = []
     for s in p.get("services", []):
         add_service(s)
+
+
+# The standard 9-section proposal layout for jobs under $5,000/month:
+# the four narrative sections (in order) + the compliance certificates.
+STANDARD_STRUCTURE = [
+    ("Our Understanding", "After Cover Letter"),
+    ("Recommended Service Structure", "After Cover Letter"),
+    ("Our Cleaning Approach", "After Scope of Work"),
+    ("How ACS Manages the Service", "After Scope of Work"),
+]
+
+
+def load_standard_structure():
+    """Lay out the standard 9-section proposal: the four narrative sections in
+    order, plus the Compliance Documents certificates. Scope/pricing come from
+    whichever job type is already loaded."""
+    ss = st.session_state
+    ss.section_ids = []
+    for title, placement in STANDARD_STRUCTURE:
+        sp = SECTION_PRESETS[title]
+        add_section(title, placement, sp["paragraphs"], sp["bullets"])
+    ss["include_compliance"] = True
+    ss.pop("result", None)
 
 
 # Placeholder cover letter shown on first load (edit the [bracketed] bits).
@@ -346,6 +374,16 @@ with st.container(border=True):
             st.rerun()
     st.caption("The form opens pre-filled with placeholder text — edit the "
                "[bracketed] parts. Use “Start blank” to clear everything.")
+    st.divider()
+    if st.button("📋 Load Standard Proposal layout (9-section structure)",
+                 type="primary", width="stretch"):
+        load_standard_structure()
+        st.rerun()
+    st.caption("Sets up the full structure for standard jobs (under $5,000/month): "
+               "Cover Letter → Our Understanding → Recommended Service Structure → Scope "
+               "→ Our Cleaning Approach → How ACS Manages the Service → Pricing → "
+               "Compliance Documents → Acceptance. Pick a job type above first for the "
+               "scope and pricing, then fill in the client details.")
 
 with st.container(border=True):
     st.markdown("**💾 Drafts** — your work is **not** auto-saved. Save a draft before "
