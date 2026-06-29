@@ -33,6 +33,8 @@ _TEMP_PREFIX = "acs_pdf_"
 HERE = os.path.dirname(os.path.abspath(__file__))
 TEMPLATE_PATH = os.path.join(HERE, "template", "proposal_template.docx")
 HIA_LOGO_PATH = os.path.join(HERE, "template", "assets", "hia_logo.jpg")
+COMPLIANCE_DIR = os.path.join(HERE, "template", "assets", "compliance")
+COMPLIANCE_FILES = ("labour_hire_licence.pdf", "workcover.pdf", "public_liability.pdf")
 
 PLACEMENTS = ("after_cover", "after_scope", "after_investment")
 
@@ -176,6 +178,8 @@ def build_context(data):
         sec["number"] = number(sec["toc_title"])
     include_testimonial = bool(data.get("include_testimonial"))
     num_testimonial = number("Testimonial") if include_testimonial else ""
+    include_compliance = bool(data.get("include_compliance"))
+    num_compliance = number("Compliance Documents") if include_compliance else ""
     num_terms = number("Service Terms")
     num_acceptance = number("Acceptance")
 
@@ -207,6 +211,8 @@ def build_context(data):
         "num_acceptance": num_acceptance,
         "include_testimonial": include_testimonial,
         "num_testimonial": num_testimonial,
+        "include_compliance": include_compliance,
+        "num_compliance": num_compliance,
         "extra_after_cover": buckets["after_cover"],
         "extra_after_scope": buckets["after_scope"],
         "extra_after_investment": buckets["after_investment"],
@@ -313,3 +319,47 @@ def docx_bytes_to_pdf_bytes(docx_bytes):
         return None
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
+
+
+def append_compliance_pdfs(pdf_bytes):
+    """Insert the bundled ACS compliance certificate PDFs (Labour Hire Licence,
+    WorkCover, Public Liability) right after the 'Compliance Documents' divider
+    page, so the certificates sit with their section and the signing page stays
+    last. Falls back to appending at the very end if the divider can't be found,
+    and returns the input unchanged if pypdf/certs are missing or anything fails
+    (so a proposal still downloads even if a certificate is bad)."""
+    if not pdf_bytes:
+        return pdf_bytes
+    try:
+        from pypdf import PdfReader, PdfWriter
+    except ImportError:
+        return pdf_bytes
+    paths = [os.path.join(COMPLIANCE_DIR, f) for f in COMPLIANCE_FILES]
+    paths = [p for p in paths if os.path.exists(p)]
+    if not paths:
+        return pdf_bytes
+    try:
+        reader = PdfReader(BytesIO(pdf_bytes))
+        n = len(reader.pages)
+        insert_after = n - 1  # fallback: end of the document
+        for i, page in enumerate(reader.pages):
+            try:
+                norm = "".join((page.extract_text() or "").split()).upper()
+            except Exception:  # noqa: BLE001
+                norm = ""
+            if "COMPLIANCEDOCUMENTS" in norm:
+                insert_after = i
+                break
+        writer = PdfWriter()
+        for i in range(insert_after + 1):
+            writer.add_page(reader.pages[i])
+        for p in paths:
+            for cp in PdfReader(p).pages:
+                writer.add_page(cp)
+        for i in range(insert_after + 1, n):
+            writer.add_page(reader.pages[i])
+        out = BytesIO()
+        writer.write(out)
+        return out.getvalue()
+    except Exception:  # noqa: BLE001
+        return pdf_bytes
