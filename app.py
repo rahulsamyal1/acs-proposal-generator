@@ -273,6 +273,7 @@ def collect_form(terms_records):
         "extra_sections": [{"title": ss.get(f"sec_title_{i}", ""), "placement": ss.get(f"sec_place_{i}", "After Cover Letter"),
                             "paragraphs": ss.get(f"sec_paras_{i}", ""), "bullets": ss.get(f"sec_bullets_{i}", "")}
                            for i in ss.section_ids],
+        "include_testimonial": ss.get("include_testimonial", False),
     }
 
 
@@ -299,6 +300,7 @@ def restore_form(form):
     for s in form.get("extra_sections", []):
         add_section(s.get("title", ""), s.get("placement", "After Cover Letter"),
                     s.get("paragraphs", ""), s.get("bullets", ""))
+    ss["include_testimonial"] = form.get("include_testimonial", False)
     terms = form.get("terms", [])
     if terms:
         ss.terms_df = pd.DataFrame([{"Term": t.get("label", ""), "Detail": t.get("value", "")}
@@ -460,6 +462,9 @@ terms_edited = st.data_editor(
 st.header("6 · Optional sections")
 st.caption("Add Executive Summary, Transition Plan, Testimonials, etc. "
            "Each is placed where you choose. Leave empty for a standard 4-section proposal.")
+st.checkbox("Include the HIA client testimonial (Meg Diola, Housing Industry Association) — "
+            "recreated neatly with the HIA logo, placed before Service Terms",
+            key="include_testimonial")
 qc1, qc2 = st.columns([3, 1])
 with qc1:
     quick = st.selectbox("Quick-add a common section", ["—"] + list(SECTION_PRESETS))

@@ -22,7 +22,8 @@ from datetime import date
 from io import BytesIO
 
 import jinja2
-from docxtpl import DocxTemplate
+from docx.shared import Mm
+from docxtpl import DocxTemplate, InlineImage
 
 # Only one LibreOffice conversion runs at a time (process-wide) so concurrent
 # users can't spawn several soffice processes and exhaust the container's RAM.
@@ -31,6 +32,7 @@ _TEMP_PREFIX = "acs_pdf_"
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 TEMPLATE_PATH = os.path.join(HERE, "template", "proposal_template.docx")
+HIA_LOGO_PATH = os.path.join(HERE, "template", "assets", "hia_logo.jpg")
 
 PLACEMENTS = ("after_cover", "after_scope", "after_investment")
 
@@ -172,6 +174,8 @@ def build_context(data):
     num_investment = number("Investment Options")
     for sec in buckets["after_investment"]:
         sec["number"] = number(sec["toc_title"])
+    include_testimonial = bool(data.get("include_testimonial"))
+    num_testimonial = number("Testimonial") if include_testimonial else ""
     num_terms = number("Service Terms")
     num_acceptance = number("Acceptance")
 
@@ -201,6 +205,8 @@ def build_context(data):
         "num_investment": num_investment,
         "num_terms": num_terms,
         "num_acceptance": num_acceptance,
+        "include_testimonial": include_testimonial,
+        "num_testimonial": num_testimonial,
         "extra_after_cover": buckets["after_cover"],
         "extra_after_scope": buckets["after_scope"],
         "extra_after_investment": buckets["after_investment"],
@@ -214,6 +220,12 @@ def render_docx_bytes(data):
     """Render the template and return the .docx as bytes."""
     context = build_context(data)
     tpl = DocxTemplate(TEMPLATE_PATH)
+    # The HIA testimonial logo is a real embedded image (not a screenshot),
+    # only attached when the testimonial section is switched on.
+    if context.get("include_testimonial") and os.path.exists(HIA_LOGO_PATH):
+        context["hia_logo"] = InlineImage(tpl, HIA_LOGO_PATH, height=Mm(22))
+    else:
+        context["hia_logo"] = ""
     jinja_env = jinja2.Environment(autoescape=True)
     tpl.render(context, jinja_env)
     buf = BytesIO()
