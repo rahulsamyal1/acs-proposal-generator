@@ -80,6 +80,19 @@ SECTION_PRESETS = {
 }
 
 
+# Common scope areas — quick-add buttons that pre-fill a sensible task list.
+AREA_PRESETS = {
+    "General Office Area": "Vacuum all carpets and walkways\nMop hard floors\nDust and wipe desks, surfaces and ledges\nSpot clean glass, partitions and doors\nEmpty bins and replace liners\nGeneral tidy and presentation check",
+    "Kitchen and Lunchroom": "Clean and sanitise benches and sink\nWipe tables, chairs and appliance exteriors\nClean microwave inside and out\nMop floors\nEmpty bins and replace liners\nRestock supplies where provided",
+    "Bathrooms": "Clean and sanitise toilets and urinals\nClean basins, taps and mirrors\nMop and sanitise floors\nWipe all touch points\nRestock soap, paper and consumables\nEmpty sanitary and general bins",
+    "High Touch Points": "Sanitise door handles and push plates\nWipe light switches and power points\nClean lift buttons and handrails\nSanitise reception counter and sign-in area\nWipe shared phones, keyboards and EFTPOS",
+    "Bins and Waste": "Empty all bins and replace liners\nRemove waste to the collection point\nWipe bin lids and exteriors\nSeparate recycling where provided\nTidy the bin store area",
+    "Weekly Tasks": "Detail vacuum edges and corners\nDust vents, sills and high surfaces\nClean internal glass and partitions\nWipe skirting boards",
+    "Fortnightly Tasks": "Damp wipe doors and frames\nSpot clean walls and light switches\nDetail clean kitchen appliances\nDust blinds and fittings",
+    "Monthly Tasks": "High dusting of vents and ledges\nClean light fittings and exit signs\nDetail clean under furniture where accessible\nMachine scrub hard floors where required",
+}
+
+
 @st.cache_data
 def load_presets():
     with open(PRESETS_PATH, "r", encoding="utf-8") as fh:
@@ -134,6 +147,24 @@ def add_area(name="", items=""):
     st.session_state[f"area_name_{i}"] = name
     st.session_state[f"area_items_{i}"] = items
     st.session_state.area_ids.append(i)
+
+
+def insert_area_after(i, name="", items=""):
+    """Add a new area directly below area `i` (so office areas can be grouped)."""
+    nid = new_id()
+    st.session_state[f"area_name_{nid}"] = name
+    st.session_state[f"area_items_{nid}"] = items
+    ids = st.session_state.area_ids
+    ids.insert(ids.index(i) + 1, nid)
+
+
+def move_area(i, delta):
+    """Move area `i` up (delta=-1) or down (delta=+1) in the scope order."""
+    ids = st.session_state.area_ids
+    pos = ids.index(i)
+    new = pos + delta
+    if 0 <= new < len(ids):
+        ids[pos], ids[new] = ids[new], ids[pos]
 
 
 def add_service(svc=None):
@@ -432,22 +463,47 @@ _ensure("frequency", "")
 st.text_input("Cleaning frequency", key="frequency",
               placeholder="e.g. 2 days per week, after hours")
 
-st.markdown("**Areas**")
-for i in list(st.session_state.area_ids):
+st.markdown("**Areas** — they appear in the proposal in the order shown. Use ↑ ↓ to reorder, "
+            "➕ to add an area directly below (handy for grouping several office areas), and the "
+            "buttons below to quick-add common areas.")
+_aids = st.session_state.area_ids
+for pos, i in enumerate(list(_aids)):
     with st.container(border=True):
-        cc1, cc2 = st.columns([3, 1])
-        with cc1:
-            st.text_input("Area name", key=f"area_name_{i}")
-        with cc2:
-            st.write("")
-            st.write("")
-            if st.button("Remove", key=f"rm_area_{i}"):
-                st.session_state.area_ids.remove(i)
+        top = st.columns([5, 1, 1, 1, 1])
+        with top[0]:
+            st.text_input("Area name", key=f"area_name_{i}", label_visibility="collapsed",
+                          placeholder="Area name (e.g. General Office Area, Reception, Meeting Rooms)")
+        with top[1]:
+            if st.button("↑", key=f"up_{i}", disabled=(pos == 0), help="Move up", width="stretch"):
+                move_area(i, -1)
                 st.rerun()
-        st.text_area("Scope items (one per line)", key=f"area_items_{i}", height=110)
-if st.button("➕ Add row"):
-    add_area()
-    st.rerun()
+        with top[2]:
+            if st.button("↓", key=f"dn_{i}", disabled=(pos == len(_aids) - 1), help="Move down", width="stretch"):
+                move_area(i, 1)
+                st.rerun()
+        with top[3]:
+            if st.button("➕", key=f"ins_{i}", help="Add an area directly below this one", width="stretch"):
+                insert_area_after(i)
+                st.rerun()
+        with top[4]:
+            if st.button("🗑", key=f"rm_area_{i}", help="Remove this area", width="stretch"):
+                _aids.remove(i)
+                st.rerun()
+        st.text_area("Scope items (one per line)", key=f"area_items_{i}", height=110,
+                     label_visibility="collapsed", placeholder="Scope items, one per line")
+
+qa1, qa2, qa3 = st.columns([3, 1, 1])
+with qa1:
+    area_choice = st.selectbox("Quick-add a common area", ["— choose —"] + list(AREA_PRESETS),
+                               key="area_quickadd", label_visibility="collapsed")
+with qa2:
+    if st.button("Add area", disabled=(area_choice == "— choose —"), width="stretch"):
+        add_area(area_choice, AREA_PRESETS[area_choice])
+        st.rerun()
+with qa3:
+    if st.button("Add blank", width="stretch"):
+        add_area()
+        st.rerun()
 
 _ensure("service_notes", "")
 st.text_area("Service notes (one per line)", key="service_notes", height=110)
