@@ -271,6 +271,61 @@ def clear_all():
     add_service()
 
 
+# ---------------------------------------------------------------------------
+# Button callbacks. Every button that changes the form does so in an on_click
+# callback, never as `if st.button(): change(); st.rerun()`. A st.rerun() fired
+# part-way down the script stops the run before the widgets below it are drawn,
+# and Streamlit then drops what was typed in those widgets — e.g. clicking an
+# area's ↑ wiped the inclusions, and "Load Standard Proposal layout" wiped the
+# client details. A callback runs first, then the whole page draws normally.
+# ---------------------------------------------------------------------------
+def _cb_apply_preset():
+    choice = st.session_state.get("preset_choice")
+    for p in presets:
+        if p["name"] == choice:
+            apply_preset(p)
+            return
+
+
+def _cb_remove_area(i):
+    if i in st.session_state.area_ids:
+        st.session_state.area_ids.remove(i)
+
+
+def _cb_quick_area():
+    name = st.session_state.get("area_quickadd")
+    if name in AREA_PRESETS:
+        add_area(name, AREA_PRESETS[name])
+
+
+def _cb_remove_service(i):
+    if i in st.session_state.service_ids:
+        st.session_state.service_ids.remove(i)
+
+
+def _cb_quick_section():
+    title = st.session_state.get("section_quickadd")
+    if title in SECTION_PRESETS:
+        sp = SECTION_PRESETS[title]
+        add_section(title, sp["placement"], sp["paragraphs"], sp["bullets"])
+
+
+def _cb_remove_section(i):
+    if i in st.session_state.section_ids:
+        st.session_state.section_ids.remove(i)
+
+
+def _cb_load_draft():
+    up = st.session_state.get("draft_upload")
+    if up is None:
+        return
+    try:
+        restore_form(json.loads(up.getvalue().decode("utf-8")))
+        st.session_state["_draft_msg"] = ("success", "Draft loaded.")
+    except Exception as exc:  # noqa: BLE001
+        st.session_state["_draft_msg"] = ("error", "Could not read that draft file: %s" % exc)
+
+
 GST_RATE = 1.10
 
 
@@ -393,23 +448,18 @@ st.caption("Fill in the details, click Generate, and download the branded propos
 
 with st.container(border=True):
     names = ["— Blank —"] + [p["name"] for p in presets]
-    choice = st.selectbox("Start from a job type (optional)", names, index=0)
+    choice = st.selectbox("Start from a job type (optional)", names, index=0, key="preset_choice")
     pcol1, pcol2 = st.columns(2)
     with pcol1:
-        if st.button("Apply preset", disabled=(choice == "— Blank —"), width="stretch"):
-            apply_preset(presets[names.index(choice) - 1])
-            st.rerun()
+        st.button("Apply preset", disabled=(choice == "— Blank —"), width="stretch",
+                  on_click=_cb_apply_preset)
     with pcol2:
-        if st.button("Start blank", width="stretch"):
-            clear_all()
-            st.rerun()
+        st.button("Start blank", width="stretch", on_click=clear_all)
     st.caption("The form opens pre-filled with placeholder text — edit the "
                "[bracketed] parts. Use “Start blank” to clear everything.")
     st.divider()
-    if st.button("📋 Load Standard Proposal layout (9-section structure)",
-                 type="primary", width="stretch"):
-        load_standard_structure()
-        st.rerun()
+    st.button("📋 Load Standard Proposal layout (9-section structure)",
+              type="primary", width="stretch", on_click=load_standard_structure)
     st.caption("Sets up the full structure for standard jobs (under $5,000/month): "
                "Cover Letter → Our Understanding → Recommended Service Structure → Scope "
                "→ Our Cleaning Approach → How ACS Manages the Service → Pricing → "
@@ -420,15 +470,10 @@ with st.container(border=True):
     st.markdown("**💾 Drafts** — your work is **not** auto-saved. Save a draft before "
                 "refreshing or closing, then load it here to continue.")
     _up = st.file_uploader("Load a saved draft (.json)", type=["json"], key="draft_upload")
-    if st.button("Load this draft", disabled=(_up is None)):
-        try:
-            restore_form(json.loads(_up.getvalue().decode("utf-8")))
-            st.session_state["_draft_loaded"] = True
-            st.rerun()
-        except Exception as exc:  # noqa: BLE001
-            st.error("Could not read that draft file: %s" % exc)
-if st.session_state.pop("_draft_loaded", False):
-    st.success("Draft loaded.")
+    st.button("Load this draft", disabled=(_up is None), on_click=_cb_load_draft)
+_draft_msg = st.session_state.pop("_draft_msg", None)
+if _draft_msg:
+    (st.success if _draft_msg[0] == "success" else st.error)(_draft_msg[1])
 
 # 1. Client details ----------------------------------------------------------
 st.header("1 · Client details")
@@ -474,21 +519,17 @@ for pos, i in enumerate(list(_aids)):
             st.text_input("Area name", key=f"area_name_{i}", label_visibility="collapsed",
                           placeholder="Area name (e.g. General Office Area, Reception, Meeting Rooms)")
         with top[1]:
-            if st.button("↑", key=f"up_{i}", disabled=(pos == 0), help="Move up", width="stretch"):
-                move_area(i, -1)
-                st.rerun()
+            st.button("↑", key=f"up_{i}", disabled=(pos == 0), help="Move up", width="stretch",
+                      on_click=move_area, args=(i, -1))
         with top[2]:
-            if st.button("↓", key=f"dn_{i}", disabled=(pos == len(_aids) - 1), help="Move down", width="stretch"):
-                move_area(i, 1)
-                st.rerun()
+            st.button("↓", key=f"dn_{i}", disabled=(pos == len(_aids) - 1), help="Move down",
+                      width="stretch", on_click=move_area, args=(i, 1))
         with top[3]:
-            if st.button("➕", key=f"ins_{i}", help="Add an area directly below this one", width="stretch"):
-                insert_area_after(i)
-                st.rerun()
+            st.button("➕", key=f"ins_{i}", help="Add an area directly below this one", width="stretch",
+                      on_click=insert_area_after, args=(i,))
         with top[4]:
-            if st.button("🗑", key=f"rm_area_{i}", help="Remove this area", width="stretch"):
-                _aids.remove(i)
-                st.rerun()
+            st.button("🗑", key=f"rm_area_{i}", help="Remove this area", width="stretch",
+                      on_click=_cb_remove_area, args=(i,))
         st.text_area("Scope items (one per line)", key=f"area_items_{i}", height=110,
                      label_visibility="collapsed", placeholder="Scope items, one per line")
 
@@ -497,13 +538,10 @@ with qa1:
     area_choice = st.selectbox("Quick-add a common area", ["— choose —"] + list(AREA_PRESETS),
                                key="area_quickadd", label_visibility="collapsed")
 with qa2:
-    if st.button("Add area", disabled=(area_choice == "— choose —"), width="stretch"):
-        add_area(area_choice, AREA_PRESETS[area_choice])
-        st.rerun()
+    st.button("Add area", disabled=(area_choice == "— choose —"), width="stretch",
+              on_click=_cb_quick_area)
 with qa3:
-    if st.button("Add blank", width="stretch"):
-        add_area()
-        st.rerun()
+    st.button("Add blank", width="stretch", on_click=add_area)
 
 _ensure("service_notes", "")
 st.text_area("Service notes (one per line)", key="service_notes", height=110)
@@ -518,9 +556,7 @@ for i in list(st.session_state.service_ids):
         with cc2:
             st.write("")
             st.write("")
-            if st.button("Remove", key=f"rm_svc_{i}"):
-                st.session_state.service_ids.remove(i)
-                st.rerun()
+            st.button("Remove", key=f"rm_svc_{i}", on_click=_cb_remove_service, args=(i,))
         st.text_area("Description", key=f"svc_desc_{i}", height=80)
         d1, d2 = st.columns(2)
         with d1:
@@ -532,9 +568,7 @@ for i in list(st.session_state.service_ids):
             if amt and amt > 0:
                 st.caption("→ %s incl GST  (auto, 10%% GST added)"
                            % _money(round(amt * GST_RATE, 2)))
-if st.button("➕ Add service line"):
-    add_service()
-    st.rerun()
+st.button("➕ Add service line", on_click=add_service)
 
 _ensure("inclusions", "")
 st.text_area("What the investment includes (one per line)", key="inclusions", height=150)
@@ -566,17 +600,13 @@ st.checkbox("Include Compliance Documents — adds our Labour Hire Licence, Work
             key="include_compliance")
 qc1, qc2 = st.columns([3, 1])
 with qc1:
-    quick = st.selectbox("Quick-add a common section", ["—"] + list(SECTION_PRESETS))
+    quick = st.selectbox("Quick-add a common section", ["—"] + list(SECTION_PRESETS),
+                         key="section_quickadd")
 with qc2:
     st.write("")
     st.write("")
-    if st.button("Add", disabled=(quick == "—")):
-        sp = SECTION_PRESETS[quick]
-        add_section(quick, sp["placement"], sp["paragraphs"], sp["bullets"])
-        st.rerun()
-if st.button("➕ Add blank section"):
-    add_section()
-    st.rerun()
+    st.button("Add", disabled=(quick == "—"), on_click=_cb_quick_section)
+st.button("➕ Add blank section", on_click=add_section)
 
 for i in list(st.session_state.section_ids):
     with st.container(border=True):
@@ -586,9 +616,7 @@ for i in list(st.session_state.section_ids):
         with cc2:
             st.write("")
             st.write("")
-            if st.button("Remove", key=f"rm_sec_{i}"):
-                st.session_state.section_ids.remove(i)
-                st.rerun()
+            st.button("Remove", key=f"rm_sec_{i}", on_click=_cb_remove_section, args=(i,))
         st.selectbox("Where it goes", list(PLACEMENT_LABELS), key=f"sec_place_{i}")
         st.text_area("Paragraphs (one per line)", key=f"sec_paras_{i}", height=100)
         st.text_area("Bullet points (one per line, optional)", key=f"sec_bullets_{i}", height=90)

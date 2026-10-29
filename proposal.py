@@ -133,9 +133,11 @@ def build_context(data):
     # --- services / inclusions / terms ---
     services = []
     for svc in (data.get("services") or []):
+        # price_period is not content on its own: every new line defaults to
+        # "per month", so counting it printed empty rows reading "per month".
         if not any((svc.get(k) or "").strip()
                    for k in ("name", "description", "schedule",
-                             "price_ex", "price_period", "price_inc")):
+                             "price_ex", "price_inc")):
             continue
         services.append({
             "name": (svc.get("name") or "").strip(),
