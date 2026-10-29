@@ -20,6 +20,7 @@ import threading
 import time
 from datetime import date
 from io import BytesIO
+from pathlib import Path
 
 import jinja2
 from docx.shared import Mm
@@ -301,10 +302,14 @@ def docx_bytes_to_pdf_bytes(docx_bytes):
         with open(docx_path, "wb") as fh:
             fh.write(docx_bytes)
 
-        profile = os.path.join(tmp, "lo_profile")
+        # as_uri() gives a valid file URL on every OS (file:///C:/... on
+        # Windows). Hand-building "file://" + path produced file://C:/... there,
+        # which LibreOffice rejects with a misleading "bootstrap.ini is corrupt"
+        # dialog and then hangs.
+        profile = Path(tmp, "lo_profile").as_uri()
         cmd = [
             soffice, "--headless", "--nologo", "--nofirststartwizard",
-            "-env:UserInstallation=file://" + profile.replace("\\", "/"),
+            "-env:UserInstallation=" + profile,
             "--convert-to", "pdf", "--outdir", tmp, docx_path,
         ]
         # Serialize conversions and hard-kill a hung/over-time soffice so it
