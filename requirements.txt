@@ -1,5 +1,8 @@
-streamlit>=1.36
-docxtpl>=0.16
-python-docx>=1.1
-jinja2>=3.1
-pandas>=2.0
+# Pinned to the versions tested together (2026-10-29). Unpinned ">=" ranges let a
+# Streamlit Cloud rebuild pull a new major release that could break the app.
+# To upgrade: bump here, run the app locally, generate + Create PDF, then push.
+streamlit==1.61.1
+docxtpl==0.20.2
+python-docx==1.2.0
+jinja2==3.1.6
+pandas==3.0.5

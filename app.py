@@ -10,6 +10,7 @@ rotation frequency.
 """
 
 import hashlib
+import hmac
 import json
 import os
 
@@ -105,16 +106,23 @@ def load_presets():
 def password_ok():
     if st.session_state.get("auth_ok"):
         return True
-    try:
-        expected = st.secrets["app_password"]
-    except Exception:  # noqa: BLE001
-        expected = "changeme"
     if os.path.exists(LOGO):
         st.image(LOGO, width=260)
     st.subheader("ACS Proposal Generator")
+    # Fail closed: with no password configured the app does not open. (It used
+    # to fall back to a known default, so a lost secret silently meant anyone
+    # could get in.) Locally the password lives in .streamlit/secrets.toml.
+    try:
+        expected = str(st.secrets["app_password"])
+    except Exception:  # noqa: BLE001
+        expected = ""
+    if not expected:
+        st.error("This app has no password configured, so it is locked. Set `app_password` "
+                 "in the app's Settings → Secrets on Streamlit Cloud.")
+        st.stop()
     pw = st.text_input("Password", type="password")
     if pw:
-        if pw == expected:
+        if hmac.compare_digest(pw.encode("utf-8"), expected.encode("utf-8")):
             st.session_state.auth_ok = True
             st.rerun()
         else:
@@ -489,13 +497,17 @@ with c1:
     st.text_input("Date (blank = today)", key="date")
 with c2:
     _ensure("site_office", "")
-    st.text_input("Site / office (for the letter)", key="site_office")
+    st.text_input("Site / office (for the letter)", key="site_office",
+                  help="Fills the [your site] gap in the cover letter, e.g. "
+                       "\"the Northbridge clinic\" or \"your Burnley office\".")
     _ensure("contact_title", "")
     st.text_input("Contact title", key="contact_title")
     _ensure("client_address", "")
     st.text_input("Client address", key="client_address")
     _ensure("reference", "")
-    st.text_input("Reference (blank = auto)", key="reference")
+    st.text_input("Reference (blank = auto)", key="reference",
+                  help="Printed on the cover page next to the date. Left blank, it becomes "
+                       "ACS-<client initials>-<year>-001.")
 
 # 2. Cover letter ------------------------------------------------------------
 st.header("2 · Cover letter")
@@ -661,6 +673,7 @@ if _gen:
             "docx": docx_bytes, "pdf": None, "fname": fname,
             "v": st.session_state.gen_count, "sig": _form_sig(_terms_records),
             "include_compliance": data.get("include_compliance", False),
+            "placeholders": proposal.find_placeholders(docx_bytes),
         }
 
 res = st.session_state.get("result")
@@ -670,6 +683,10 @@ if res:
         st.warning("⚠️ You've changed the form since this was generated. "
                    "Click **Generate proposal** again to refresh the download below "
                    "(otherwise it will be the previous version).")
+    elif res.get("placeholders"):
+        st.warning("⚠️ **Not ready to send — unfilled placeholders are still in the proposal:** "
+                   + ", ".join("`%s`" % p for p in res["placeholders"])
+                   + ". Fill them in (or clear them), then click **Generate proposal** again.")
     else:
         st.success("Proposal ready — download below.")
     st.download_button(
@@ -680,10 +697,13 @@ if res:
     if res["pdf"]:
         st.download_button("⬇ Download PDF", res["pdf"], res["fname"] + ".pdf",
                            mime="application/pdf", key="dl_pdf_%d" % res["v"])
-    elif res.get("pdf_failed"):
-        st.info("PDF couldn't be produced here — the Word document is ready. "
-                "(On the deployed app, Create PDF works via LibreOffice.)")
     else:
+        # A failed attempt (e.g. LibreOffice busy with another conversion and
+        # timing out) used to hide this button until the next Generate. Now the
+        # message shows and the button stays, so you can simply try again.
+        if res.get("pdf_failed"):
+            st.info("The PDF couldn't be created that time — the Word document above is ready. "
+                    "Click **Create PDF** to try again.")
         if st.button("Create PDF", key="make_pdf_%d" % res["v"]):
             with st.spinner("Creating PDF…"):
                 pdf = proposal.docx_bytes_to_pdf_bytes(res["docx"])

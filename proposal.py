@@ -104,6 +104,16 @@ def build_context(data):
     if not reference:
         reference = "ACS-{}-{}-001".format(_initials(client_name), today.year)
 
+    # The cover letter's stock wording has "[your site]" and "[Client name]"
+    # gaps; fill them from the Site / office and Client name fields when given.
+    cover_paragraphs = _clean_list(data.get("cover_paragraphs"))
+    site = (data.get("site_office") or "").strip()
+    real_client = (data.get("client_name") or "").strip()
+    for token, value in (("[your site]", site), ("[client name]", real_client)):
+        if value:
+            pat = re.compile(re.escape(token), re.IGNORECASE)
+            cover_paragraphs = [pat.sub(lambda _m, v=value: v, p) for p in cover_paragraphs]
+
     # --- inclusions (paired into a 2-column grid) ---
     inclusions = _clean_list(data.get("inclusions"))
     inclusion_rows = []
@@ -201,7 +211,7 @@ def build_context(data):
         "contact_phone": (data.get("contact_phone") or "").strip(),
         "date": date_str,
         "reference": reference,
-        "cover_paragraphs": _clean_list(data.get("cover_paragraphs")),
+        "cover_paragraphs": cover_paragraphs,
         "frequency": (data.get("frequency") or "").strip(),
         "duration": (data.get("duration") or "").strip(),
         "scope_col": scope_col,
@@ -256,6 +266,27 @@ def render_docx_bytes(data):
     buf = BytesIO()
     tpl.save(buf)
     return buf.getvalue()
+
+
+# Up to 200 chars: the stock cover letter's longest gap is ~95
+# ("[what you observed - the current standard, ...]").
+_PLACEHOLDER = re.compile(r"\[[^\[\]\n]{2,200}\]")
+
+
+def find_placeholders(docx_bytes):
+    """Return the unfilled "[...]" placeholders left in a generated proposal
+    (body and page headers), in order of first appearance."""
+    import zipfile
+    found = []
+    with zipfile.ZipFile(BytesIO(docx_bytes)) as z:
+        parts = ["word/document.xml"] + sorted(n for n in z.namelist()
+                                               if re.match(r"word/header\d*\.xml$", n))
+        for part in parts:
+            text = re.sub(r"<[^>]+>", "", z.read(part).decode("utf-8"))
+            for m in _PLACEHOLDER.findall(text):
+                if m not in found:
+                    found.append(m)
+    return found
 
 
 def _find_soffice():
